@@ -18,5 +18,7 @@ A LV2 toy
 - git submodule init
 - git submodule update
 - make
+- make install # will install into ~/.lv2 ... AND/OR....
+- sudo make install # will install into /usr/lib/lv2
 
 that's it.
