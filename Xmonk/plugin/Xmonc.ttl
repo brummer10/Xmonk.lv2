@@ -26,6 +26,9 @@
 @prefix guiext: <http://lv2plug.in/ns/extensions/ui#>.
 @prefix time: <http://lv2plug.in/ns/ext/time#>.
 @prefix units: <http://lv2plug.in/ns/extensions/units#> .
+@prefix atom:  <http://lv2plug.in/ns/ext/atom#> .
+@prefix urid:  <http://lv2plug.in/ns/ext/urid#> .
+@prefix midi:  <http://lv2plug.in/ns/ext/midi#> .
 
 
 <urn:Xputty:Xmonc_>
@@ -34,6 +37,7 @@
     doap:maintainer  "Example" ;
     doap:name "Xmonk";
     doap:license <http://opensource.org/licenses/isc> ;
+    lv2:requiredFeature urid:map ;
     lv2:project <urn:Xputty:Xmonc_> ;
     lv2:optionalFeature lv2:hardRTCapable ;
 
@@ -93,6 +97,15 @@ rdfs:comment """
         lv2:default 2.0 ;
         lv2:minimum 0.0 ;
         lv2:maximum 4.0 ;
+    ]      , [
+        a lv2:InputPort ,
+            atom:AtomPort ;
+        atom:bufferType atom:Sequence ;
+        atom:supports midi:MidiEvent ;
+        lv2:designation lv2:control ;
+        lv2:index 6 ;
+        lv2:symbol "MIDI_IN" ;
+        lv2:name "MIDI_IN"
     ] .
 
 <urn:Xputty:Xmonc_gui>

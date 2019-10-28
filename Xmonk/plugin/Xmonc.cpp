@@ -62,6 +62,14 @@ namespace xmonc {
 class Xmonc_
 {
 private:
+  const LV2_Atom_Sequence* control;
+  LV2_URID midi_MidiEvent;
+  LV2_URID_Map* map;
+  uint8_t note_on;
+  uint8_t note_off;
+  float* note;
+  float* gate;
+
   // pointer to buffer
   float*          output;
   float*          output1;
@@ -124,6 +132,15 @@ void Xmonc_::connect_(uint32_t port,void* data)
     case EFFECTS_OUTPUT1:
       output1 = static_cast<float*>(data);
       break;
+    case MIDI_IN:
+      control = (const LV2_Atom_Sequence*)data;
+      break;
+    case NOTE: 
+      note = (float*)data; 
+      break;
+    case GATE: 
+      gate = (float*)data; 
+      break;
     default:
       break;
     }
@@ -144,7 +161,28 @@ void Xmonc_::deactivate_f()
 
 void Xmonc_::run_dsp_(uint32_t n_samples)
 {
-  xmonc->compute_static(static_cast<int>(n_samples), output, output1, xmonc);
+    LV2_ATOM_SEQUENCE_FOREACH(control, ev) {
+        if (ev->body.type == midi_MidiEvent) {
+            const uint8_t* const msg = (const uint8_t*)(ev + 1);
+            switch (lv2_midi_message_type(msg)) {
+            case LV2_MIDI_MSG_NOTE_ON:
+                note_on = msg[1];
+                (*note) = (float)note_on;
+                (*gate) = 1.0;
+            break;
+            case LV2_MIDI_MSG_NOTE_OFF:
+                note_off = msg[1];
+                (*note) = (float)note_off;
+                (*gate) = 0.0;
+            break;
+            case LV2_MIDI_MSG_PGM_CHANGE:
+            break;
+            default: 
+            break;
+            }
+        }
+    }
+    xmonc->compute_static(static_cast<int>(n_samples), output, output1, xmonc);
 }
 
 void Xmonc_::connect_all__ports(uint32_t port, void* data)
@@ -162,11 +200,25 @@ Xmonc_::instantiate(const LV2_Descriptor* descriptor,
                             double rate, const char* bundle_path,
                             const LV2_Feature* const* features)
 {
+
+  LV2_URID_Map* map = NULL;
+  for (int i = 0; features[i]; ++i) {
+    if (!strcmp(features[i]->URI, LV2_URID__map)) {
+        map = (LV2_URID_Map*)features[i]->data;
+            break;
+        }
+    }
+  if (!map) {
+      return NULL;
+  }
+
   // init the plug-in class
   Xmonc_ *self = new Xmonc_();
   if (!self) {
     return NULL;
   }
+  self->map = map;
+  self->midi_MidiEvent = map->map(map->handle, LV2_MIDI__MidiEvent);
 
   self->init_dsp_((uint32_t)rate);
 

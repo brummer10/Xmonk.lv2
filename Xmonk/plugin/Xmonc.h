@@ -23,6 +23,10 @@
 #define SRC_HEADERS_GXEFFECTS_H_
 
 #include <lv2.h>
+#include <lv2/lv2plug.in/ns/ext/atom/atom.h>
+#include <lv2/lv2plug.in/ns/ext/atom/util.h>
+#include <lv2/lv2plug.in/ns/ext/midi/midi.h>
+#include <lv2/lv2plug.in/ns/ext/urid/urid.h>
 
 #define PLUGIN_URI "urn:Xputty:Xmonc_"
 #define PLUGIN_UI_URI "urn:Xputty:Xmonc_gui"
@@ -32,10 +36,11 @@ typedef enum
 {
    EFFECTS_OUTPUT,
    EFFECTS_OUTPUT1,
-   NOTE, 
-   GAIN, 
-   GATE, 
-   VOWEL, 
+   NOTE,
+   GAIN,
+   GATE,
+   VOWEL,
+   MIDI_IN,
 } PortIndex;
 
 #endif //SRC_HEADERS_GXEFFECTS_H_
