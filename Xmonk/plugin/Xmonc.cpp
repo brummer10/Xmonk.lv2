@@ -69,6 +69,8 @@ private:
   uint8_t note_off;
   float* note;
   float* gate;
+  float* vowel;
+  int gatecounter;
 
   // pointer to buffer
   float*          output;
@@ -119,6 +121,7 @@ Xmonc_::~Xmonc_()
 void Xmonc_::init_dsp_(uint32_t rate)
 {
   xmonc->init_static(rate, xmonc); // init the DSP class
+  gatecounter = 0;
 }
 
 // connect the Ports used by the plug-in class
@@ -135,11 +138,14 @@ void Xmonc_::connect_(uint32_t port,void* data)
     case MIDI_IN:
       control = (const LV2_Atom_Sequence*)data;
       break;
-    case NOTE: 
-      note = (float*)data; 
+    case NOTE:
+      note = (float*)data;
       break;
-    case GATE: 
-      gate = (float*)data; 
+    case VOWEL: 
+      vowel = (float*)data;
+      break;
+    case GATE:
+      gate = (float*)data;
       break;
     default:
       break;
@@ -169,15 +175,24 @@ void Xmonc_::run_dsp_(uint32_t n_samples)
                 note_on = msg[1];
                 (*note) = (float)note_on;
                 (*gate) = 1.0;
+                gatecounter++;
             break;
             case LV2_MIDI_MSG_NOTE_OFF:
-                note_off = msg[1];
-                (*note) = (float)note_off;
-                (*gate) = 0.0;
+              //  note_off = msg[1];
+              //  (*note) = (float)note_off;
+                gatecounter--;
+                if (!gatecounter)
+                    (*gate) = 0.0;
+            break;
+            case LV2_MIDI_MSG_CONTROLLER:
+                if (msg[1] == LV2_MIDI_CTL_MSB_MODWHEEL ||
+                    msg[1] == LV2_MIDI_CTL_LSB_MODWHEEL) {
+                    (*vowel) = (float) (msg[2]/31);
+                }
             break;
             case LV2_MIDI_MSG_PGM_CHANGE:
             break;
-            default: 
+            default:
             break;
             }
         }
