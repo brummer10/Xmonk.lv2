@@ -37,6 +37,7 @@
 #endif
 #define max(x, y) (((x) > (y)) ? (x) : (y))
 #define min(x, y) (((x) < (y)) ? (x) : (y))
+#define PITCHBEND_INC 0.00146484375  // 24 / (2^14), +/- 1 octave
 
 #define always_inline inline __attribute__((always_inline))
 
@@ -71,6 +72,7 @@ private:
   uint8_t note_off;
   float* note;
   float* gate;
+  float pitchbend;
   float* vowel;
   int gatecounter;
 
@@ -132,6 +134,7 @@ void Xmonc_::init_dsp_(uint32_t rate)
   reverb->init_static(rate, reverb); // init the DSP class
   delay->init_static(rate, delay); // init the DSP class
   gatecounter = 0;
+  pitchbend = 0.0;
 }
 
 // connect the Ports used by the plug-in class
@@ -185,7 +188,7 @@ void Xmonc_::run_dsp_(uint32_t n_samples)
             switch (lv2_midi_message_type(msg)) {
             case LV2_MIDI_MSG_NOTE_ON:
                 note_on = msg[1];
-                (*note) = (float)note_on;
+                (*note) = max(0.0, min((float)note_on + pitchbend, 127.0));
                 (*gate) = 1.0;
                 gatecounter++;
             break;
@@ -197,16 +200,29 @@ void Xmonc_::run_dsp_(uint32_t n_samples)
                     (*gate) = 0.0;
             break;
             case LV2_MIDI_MSG_CONTROLLER:
-                if (msg[1] == LV2_MIDI_CTL_MSB_MODWHEEL ||
-                    msg[1] == LV2_MIDI_CTL_LSB_MODWHEEL) {
-                    (*vowel) = (float) (msg[2]/31);
+                switch (msg[1]) {
+                    case LV2_MIDI_CTL_MSB_MODWHEEL:
+                    case LV2_MIDI_CTL_LSB_MODWHEEL:
+                        (*vowel) = (float) (msg[2]/31);
+                    break;
+                    case LV2_MIDI_CTL_ALL_SOUNDS_OFF:
+                    case LV2_MIDI_CTL_ALL_NOTES_OFF:
+                        gatecounter = 0;
+                        (*gate) = 0.0;
+                    break;
+                    case LV2_MIDI_CTL_RESET_CONTROLLERS:
+                        pitchbend = 0.0;
+                        (*vowel) = 0.0;
+                    break;
+                    default:
+                    break;
                 }
             break;
-            case LV2_MIDI_MSG_PGM_CHANGE:
+            case LV2_MIDI_MSG_BENDER:
+                pitchbend = ((msg[2] << 7 | msg[1]) - 8192) * PITCHBEND_INC;
+                (*note) = max(0.0, min((float)note_on + pitchbend, 127.0));
             break;
             default:
-                gatecounter = 0;
-                (*gate) = 0.0;
             break;
             }
         }
