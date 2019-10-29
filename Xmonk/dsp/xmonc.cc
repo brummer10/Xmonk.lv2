@@ -184,43 +184,43 @@ void always_inline Dsp::compute(int count, FAUSTFLOAT *output0, FAUSTFLOAT *outp
 #define fCheckbox1 (*fCheckbox1_)
 #define fHslider2 (*fHslider2_)
 
-	double TET = 12;
+	double TET = 12.0;
 	double ref_freq = 440.0;
-	double ref_note = 69;
+	double ref_note = 69.0;
 	switch(int(fCheckbox1)) {
 		case(0):
-		TET = 12;
+		TET = 12.0;
 		break;
 		case(1):
-		TET = 12;
+		TET = 12.0;
 		break;
 		case(2):
 		TET = 19;
 		ref_freq = 329.63;
-		ref_note = 60;
+		ref_note = 60.0;
 		break;
 		case(3):
-		TET = 24;
+		TET = 24.0;
 		ref_freq = 220.0;
-		ref_note = 57;
+		ref_note = 57.0;
 		break;
 		case(4):
-		TET = 31;
+		TET = 31.0;
 		ref_freq = 196.0;
-		ref_note = 55;
+		ref_note = 55.0;
 		break;
 		case(5):
-		TET = 41;
+		TET = 41.0;
 		ref_freq = 164.81;
-		ref_note = 52;
+		ref_note = 52.0;
 		break;
 		case(6):
-		TET = 53;
+		TET = 53.0;
 		ref_freq = 146.83;
-		ref_note = 50;
+		ref_note = 50.0;
 		break;
 		default:
-		TET = 12;
+		TET = 12.0;
 		break;
 	}
 

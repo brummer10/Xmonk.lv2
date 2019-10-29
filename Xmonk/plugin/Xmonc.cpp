@@ -24,6 +24,31 @@
 #include <cstring>
 #include <unistd.h>
 
+///////////////////////// DENORMAL PROTECTION WITH SSE /////////////////
+
+#ifdef NOSSE
+#undef __SSE__
+#endif
+
+#ifdef __SSE__
+#include <immintrin.h>
+#ifndef _IMMINTRIN_H_INCLUDED
+#include <fxsrintrin.h>
+#endif
+/* On Intel set FZ (Flush to Zero) and DAZ (Denormals Are Zero)
+   flags to avoid costly denormals */
+#ifdef __SSE3__
+#ifndef _PMMINTRIN_H_INCLUDED
+#include <pmmintrin.h>
+#endif
+#else
+#ifndef _XMMINTRIN_H_INCLUDED
+#include <xmmintrin.h>
+#endif
+#endif //__SSE3__
+
+#endif //__SSE__
+
 ///////////////////////// MACRO SUPPORT ////////////////////////////////
 
 #define __rt_func __attribute__((section(".rt.text")))
@@ -62,6 +87,47 @@ template<class T> inline T mydsp_faustpower6_f(T x) {return (((((x * x) * x) * x
 
 namespace xmonc {
 
+class DenormalProtection
+{
+private:
+#ifdef __SSE__
+  uint32_t  mxcsr_mask;
+  uint32_t  mxcsr;
+  uint32_t  old_mxcsr;
+#endif
+
+public:
+  inline void set_() {
+#ifdef __SSE__
+    old_mxcsr = _mm_getcsr();
+    mxcsr = old_mxcsr;
+    _mm_setcsr((mxcsr | _MM_DENORMALS_ZERO_MASK | _MM_FLUSH_ZERO_MASK) & mxcsr_mask);
+#endif
+  };
+  inline void reset_() {
+#ifdef __SSE__
+    _mm_setcsr(old_mxcsr);
+#endif
+  };
+
+  inline DenormalProtection()
+  {
+#ifdef __SSE__
+    mxcsr_mask = 0xffbf; // Default MXCSR mask
+    mxcsr      = 0;
+    uint8_t fxsave[512] __attribute__ ((aligned (16))); // Structure for storing FPU state with FXSAVE command
+
+    memset(fxsave, 0, sizeof(fxsave));
+    __builtin_ia32_fxsave(&fxsave);
+    uint32_t mask = *(reinterpret_cast<uint32_t *>(&fxsave[0x1c])); // Obtain the MXCSR mask from FXSAVE structure
+    if (mask != 0)
+        mxcsr_mask = mask;
+#endif
+  };
+
+  inline ~DenormalProtection() {};
+};
+
 class Xmonc_
 {
 private:
@@ -76,6 +142,7 @@ private:
   float* vowel;
   int gatecounter;
 
+  DenormalProtection MXCSR;
   // pointer to buffer
   float*          output;
   float*          output1;
@@ -182,6 +249,7 @@ void Xmonc_::deactivate_f()
 
 void Xmonc_::run_dsp_(uint32_t n_samples)
 {
+    MXCSR.set_();
     LV2_ATOM_SEQUENCE_FOREACH(control, ev) {
         if (ev->body.type == midi_MidiEvent) {
             const uint8_t* const msg = (const uint8_t*)(ev + 1);
@@ -230,6 +298,7 @@ void Xmonc_::run_dsp_(uint32_t n_samples)
     xmonc->compute_static(static_cast<int>(n_samples), output, output1, xmonc);
     reverb->compute_static(static_cast<int>(n_samples), output, output1, output, output1, reverb);
     delay->compute_static(static_cast<int>(n_samples), output, output1, output, output1, delay);
+    MXCSR.reset_();
 }
 
 void Xmonc_::connect_all__ports(uint32_t port, void* data)
