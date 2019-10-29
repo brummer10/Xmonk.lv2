@@ -180,7 +180,7 @@ void always_inline Dsp::compute(int count, FAUSTFLOAT *output0, FAUSTFLOAT *outp
 #define fHslider1 (*fHslider1_)
 #define fCheckbox0 (*fCheckbox0_)
 #define fHslider2 (*fHslider2_)
-	double fSlow0 = double(440.0 * pow(2.0, (fHslider0- 69)/12));//;440.0 * pow(2.0, (midi note - 69)/12);
+	double fSlow0 = double(440.0 * pow(2.0, (double(int(fHslider0))- 69)/12));//;440.0 * pow(2.0, (midi note - 69)/12);
 	double fSlow1 = (fConst3 * (double(fHslider1)*0.1 * std::min<double>(1.0, double(fCheckbox0))));
 	double fSlow2 = (0.0010000000000000009 * double(fHslider2));
 	for (int i = 0; (i < count); i = (i + 1)) {
