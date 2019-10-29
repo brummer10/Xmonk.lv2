@@ -106,6 +106,16 @@ rdfs:comment """
         lv2:index 6 ;
         lv2:symbol "MIDI_IN" ;
         lv2:name "MIDI_IN"
+    ]      , [
+        a lv2:InputPort ,
+            lv2:ControlPort ;
+        lv2:index 7 ;
+        lv2:symbol "SCALE" ;
+        lv2:name "SCALE" ;
+        lv2:portProperty lv2:integer;
+        lv2:default 0.0 ;
+        lv2:minimum 0.0 ;
+        lv2:maximum 6.0 ;
     ] .
 
 <urn:Xputty:Xmonc_gui>

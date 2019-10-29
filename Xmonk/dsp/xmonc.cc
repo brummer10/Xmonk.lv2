@@ -103,6 +103,8 @@ private:
 	FAUSTFLOAT	*fHslider1_;
 	FAUSTFLOAT fCheckbox0;
 	FAUSTFLOAT	*fCheckbox0_;
+	FAUSTFLOAT fCheckbox1;
+	FAUSTFLOAT	*fCheckbox1_;
 	double fRec3[2];
 	double fConst4;
 	double fRec4[2];
@@ -179,8 +181,52 @@ void always_inline Dsp::compute(int count, FAUSTFLOAT *output0, FAUSTFLOAT *outp
 #define fHslider0 (*fHslider0_)
 #define fHslider1 (*fHslider1_)
 #define fCheckbox0 (*fCheckbox0_)
+#define fCheckbox1 (*fCheckbox1_)
 #define fHslider2 (*fHslider2_)
-	double fSlow0 = double(440.0 * pow(2.0, (double(int(fHslider0))- 69)/12));//;440.0 * pow(2.0, (midi note - 69)/12);
+
+	double TET = 12;
+	double ref_freq = 440.0;
+	double ref_note = 69;
+	switch(int(fCheckbox1)) {
+		case(0):
+		TET = 12;
+		break;
+		case(1):
+		TET = 12;
+		break;
+		case(2):
+		TET = 19;
+		ref_freq = 329.63;
+		ref_note = 60;
+		break;
+		case(3):
+		TET = 24;
+		ref_freq = 220.0;
+		ref_note = 57;
+		break;
+		case(4):
+		TET = 31;
+		ref_freq = 196.0;
+		ref_note = 55;
+		break;
+		case(5):
+		TET = 41;
+		ref_freq = 164.81;
+		ref_note = 52;
+		break;
+		case(6):
+		TET = 53;
+		ref_freq = 146.83;
+		ref_note = 50;
+		break;
+		default:
+		TET = 12;
+		break;
+	}
+
+	double fSlow0 = int(fCheckbox1) ? double(ref_freq * pow(2.0, (double(int(fHslider0- ref_note))/TET))) :
+		double(ref_freq * pow(2.0, (fHslider0- ref_note)/TET));
+
 	double fSlow1 = (fConst3 * (double(fHslider1)*0.1 * std::min<double>(1.0, double(fCheckbox0))));
 	double fSlow2 = (0.0010000000000000009 * double(fHslider2));
 	for (int i = 0; (i < count); i = (i + 1)) {
@@ -328,6 +374,7 @@ void always_inline Dsp::compute(int count, FAUSTFLOAT *output0, FAUSTFLOAT *outp
 #undef fHslider0
 #undef fHslider1
 #undef fCheckbox0
+#undef fCheckbox1
 #undef fHslider2
 }
 
@@ -352,6 +399,9 @@ void Dsp::connect(uint32_t port,void* data)
 		break;
 	case VOWEL: 
 		fHslider2_ = (float*)data; // , 0.0, 0.0, 4.0, 0.01 
+		break;
+	case SCALE: 
+		fCheckbox1_ = (float*)data; // , 0.0, 0.0, 6.0, 1.0 
 		break;
 	default:
 		break;

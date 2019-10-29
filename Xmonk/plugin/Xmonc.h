@@ -41,6 +41,7 @@ typedef enum
    GATE,
    VOWEL,
    MIDI_IN,
+   SCALE,
 } PortIndex;
 
 #endif //SRC_HEADERS_GXEFFECTS_H_

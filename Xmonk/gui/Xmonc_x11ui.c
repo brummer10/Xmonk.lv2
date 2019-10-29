@@ -13,7 +13,7 @@
 -----------------------------------------------------------------------
 ----------------------------------------------------------------------*/
 
-#define CONTROLS 4
+#define CONTROLS 5
 
 /*---------------------------------------------------------------------
 -----------------------------------------------------------------------    
@@ -29,6 +29,7 @@ typedef struct {
     Xputty main;
     Widget_t *win;
     Widget_t *widget;
+    Widget_t *button;
     int block_event;
 
     void *controller;
@@ -187,6 +188,26 @@ static LV2UI_Handle instantiate(const struct _LV2UI_Descriptor * descriptor,
     set_adjustment(ui->widget->adj,0.0, 0.25, 0.0, 1.0, 0.005, CL_CONTINUOS);
     // connect the value changed callback with the write_function
     ui->widget->func.value_changed_callback = value_changed;
+
+
+    // create a knob widget
+    ui->button = add_combobox(ui->win, "", 200, 260, 90, 30);
+    combobox_add_entry(ui->button,"Free");
+    combobox_add_entry(ui->button,"12-ET");
+    combobox_add_entry(ui->button,"19-ET");
+    combobox_add_entry(ui->button,"24-ET");
+    combobox_add_entry(ui->button,"31-ET");
+    combobox_add_entry(ui->button,"41-ET");
+    combobox_add_entry(ui->button,"53-ET");
+    combobox_set_active_entry(ui->button, 0);
+    // store the port index in the Widget_t data field
+    ui->button->data = SCALE;
+    // store a pointer to the X11_UI struct in the parent_struct Widget_t field
+    ui->button->parent_struct = ui;
+    // set the knob adjustment to the needed range
+    //set_adjustment(ui->button->adj,0.0, 0.0, 0.0, 1.0, 1.0, CL_TOGGLE);
+    // connect the value changed callback with the write_function
+    ui->button->func.value_changed_callback = value_changed;
     // finally map all Widgets on screen
     widget_show_all(ui->win);
     // set the widget pointer to the X11 Window from the toplevel Widget_t
@@ -236,6 +257,10 @@ static void port_event(LV2UI_Handle handle, uint32_t port_index,
             ui->block_event = (int)port_index;
         } else if (port_index == NOTE) {
             check_value_changed(ui->win->adj_y, &value);
+            // prevent event loop between host and plugin
+            ui->block_event = (int)port_index;
+        } else if (port_index == SCALE) {
+            check_value_changed(ui->button->adj, &value);
             // prevent event loop between host and plugin
             ui->block_event = (int)port_index;
         }
