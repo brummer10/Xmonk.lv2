@@ -166,33 +166,29 @@ static LV2UI_Handle instantiate(const struct _LV2UI_Descriptor * descriptor,
      // store a pointer to the X11_UI struct in the parent_struct Widget_t field
     ui->win->parent_struct = ui;
     widget_get_png(ui->win, LDVAR(mandala_png));
-   
     ui->win->adj_x = add_adjustment(ui->win,2.0, 2.0, 0.0, 4.0, 0.02, CL_CONTINUOS);
     ui->win->adj_y = add_adjustment(ui->win,40.0, 40.0, 28.0, 52.0, 0.1, CL_CONTINUOS);
     //ui->win->func.adj_callback = _motion;
     ui->win->func.value_changed_callback = _motion;
     ui->win->func.button_press_callback = window_button_press;
     ui->win->func.button_release_callback = window_button_release;
-
     // connect the expose func
     ui->win->func.expose_callback = draw_window;
-    // connect the value changed callback with the write_function
-   // ui->widget->func.value_changed_callback = value_changed;
-    // create a knob widget
+
+    // create a slider widget
     ui->widget = add_vslider(ui->win, "Gain", 5, 10, 40, 280);
     // store the port index in the Widget_t data field
     ui->widget->data = GAIN;
     // store a pointer to the X11_UI struct in the parent_struct Widget_t field
     ui->widget->parent_struct = ui;
-    // set the knob adjustment to the needed range
+    // set the slider adjustment to the needed range
     set_adjustment(ui->widget->adj,0.0, 0.25, 0.0, 1.0, 0.005, CL_CONTINUOS);
     // connect the value changed callback with the write_function
     ui->widget->func.value_changed_callback = value_changed;
 
-
-    // create a knob widget
+    // create a combobox widget
     ui->button = add_combobox(ui->win, "", 200, 260, 90, 30);
-    combobox_add_entry(ui->button,"Free");
+    combobox_add_entry(ui->button,"---");
     combobox_add_entry(ui->button,"12-ET");
     combobox_add_entry(ui->button,"19-ET");
     combobox_add_entry(ui->button,"24-ET");
@@ -204,8 +200,6 @@ static LV2UI_Handle instantiate(const struct _LV2UI_Descriptor * descriptor,
     ui->button->data = SCALE;
     // store a pointer to the X11_UI struct in the parent_struct Widget_t field
     ui->button->parent_struct = ui;
-    // set the knob adjustment to the needed range
-    //set_adjustment(ui->button->adj,0.0, 0.0, 0.0, 1.0, 1.0, CL_TOGGLE);
     // connect the value changed callback with the write_function
     ui->button->func.value_changed_callback = value_changed;
     // finally map all Widgets on screen
