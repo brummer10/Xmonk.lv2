@@ -249,6 +249,7 @@ void Xmonc_::deactivate_f()
 
 void Xmonc_::run_dsp_(uint32_t n_samples)
 {
+    if(n_samples<1) return;
     MXCSR.set_();
     LV2_ATOM_SEQUENCE_FOREACH(control, ev) {
         if (ev->body.type == midi_MidiEvent) {
