@@ -85,10 +85,6 @@ class mydspSIG0 {
 mydspSIG0* newmydspSIG0() { return (mydspSIG0*)new mydspSIG0(); }
 void deletemydspSIG0(mydspSIG0* dsp) { delete dsp; }
 
-static double ftbl0mydspSIG0[65536];
-	
-
-
 class Dsp {
 private:
 	uint32_t fSamplingFreq;
@@ -117,6 +113,11 @@ private:
 	double fRec8[3];
 	double fRec9[3];
 	double fRec10[3];
+	double TET;
+	double ref_freq;
+	double ref_note;
+	mydspSIG0* sig0;
+	double ftbl0mydspSIG0[65536];
 
 	void connect(uint32_t port,void* data);
 	void clear_state_f();
@@ -128,10 +129,21 @@ public:
 	static void compute_static(int count, FAUSTFLOAT *output0, FAUSTFLOAT *output1, Dsp*);
 	static void del_instance(Dsp *p);
 	static void connect_static(uint32_t port,void* data, Dsp *p);
-	Dsp() {};
-	~Dsp() {};
+	Dsp();
+	~Dsp();
 };
 
+
+Dsp::Dsp() :
+sig0(newmydspSIG0())
+{
+
+}
+
+Dsp::~Dsp() 
+{
+	deletemydspSIG0(sig0);
+}
 
 inline void Dsp::clear_state_f()
 {
@@ -153,7 +165,6 @@ void Dsp::clear_state_f_static(Dsp *p)
 
 inline void Dsp::init(uint32_t samplingFreq)
 {
-	mydspSIG0* sig0 = newmydspSIG0();
 	sig0->instanceInitmydspSIG0(samplingFreq);
 	sig0->fillmydspSIG0(65536, ftbl0mydspSIG0);
 	deletemydspSIG0(sig0);
@@ -168,6 +179,9 @@ inline void Dsp::init(uint32_t samplingFreq)
 	fHslider1 = FAUSTFLOAT(0.90000000000000002);
 	fCheckbox0 = FAUSTFLOAT(0.0);
 	fHslider2 = FAUSTFLOAT(0.0);
+	TET = 12.0;
+	ref_freq = 440.0;
+	ref_note = 69.0;
 	clear_state_f();
 }
 
@@ -184,15 +198,16 @@ void always_inline Dsp::compute(int count, FAUSTFLOAT *output0, FAUSTFLOAT *outp
 #define fCheckbox1 (*fCheckbox1_)
 #define fHslider2 (*fHslider2_)
 
-	double TET = 12.0;
-	double ref_freq = 440.0;
-	double ref_note = 69.0;
 	switch(int(fCheckbox1)) {
 		case(0):
 		TET = 12.0;
+		ref_freq = 440.0;
+		ref_note = 69.0;
 		break;
 		case(1):
 		TET = 12.0;
+		ref_freq = 440.0;
+		ref_note = 69.0;
 		break;
 		case(2):
 		TET = 19;
@@ -221,6 +236,8 @@ void always_inline Dsp::compute(int count, FAUSTFLOAT *output0, FAUSTFLOAT *outp
 		break;
 		default:
 		TET = 12.0;
+		ref_freq = 440.0;
+		ref_note = 69.0;
 		break;
 	}
 
