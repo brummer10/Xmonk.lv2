@@ -4,6 +4,8 @@
 
 // xwidgets.h includes xputty.h and all defined widgets from Xputty
 #include "xwidgets.h"
+#include "xmidi_keyboard.h"
+
 
 #include "./Xmonc.h"
 
@@ -30,6 +32,9 @@ typedef struct {
     Widget_t *win;
     Widget_t *widget;
     Widget_t *button;
+    Widget_t *key_button;
+    Widget_t *keyboard;
+    MidiKeyboard *keys;
     int block_event;
 
     void *controller;
@@ -127,6 +132,48 @@ static void window_button_release(void *w_, void* button_, void* user_data) {
     
 }
 
+static void get_note(Widget_t *w, int *key, bool on_off) {
+    X11_UI* ui = (X11_UI*)w->parent_struct;
+    if (on_off) {
+        adj_set_value(w->adj_y, (float)(*key));
+        adj_changed(w,NOTE,(float)(*key));
+        adj_changed(w, GATE, 1.0);
+        fprintf(stderr, "get note on %i\n",(*key));
+    
+    } else {
+        adj_changed(w, GATE, 0.0);
+        fprintf(stderr, "get note off %i\n",(*key));
+    }
+}
+
+static void get_pitch(Widget_t *w,int *value) {
+    X11_UI* ui = (X11_UI*)w->parent_struct;
+    fprintf(stderr, "get pitch wheel value %i\n",(*value));
+}
+
+static void get_mod(Widget_t *w,int *value) {
+    X11_UI* ui = (X11_UI*)w->parent_struct;
+    fprintf(stderr, "get mod wheel value %i\n",(*value));
+}
+
+static void get_all_sound_off(Widget_t *w,int *value) {
+    X11_UI* ui = (X11_UI*)w->parent_struct;
+    fprintf(stderr, "get_all_sound_off \n");
+}
+
+static void key_button_callback(void *w_, void* user_data) {
+    Widget_t *w = (Widget_t*)w_;
+    Widget_t *p = w->parent;
+    X11_UI* ui = (X11_UI*)p->parent_struct;
+    
+    if (w->flags & HAS_POINTER && adj_get_value(w->adj)){
+        widget_show_all(ui->keyboard);
+    }
+    if (w->flags & HAS_POINTER && !adj_get_value(w->adj)){
+        widget_hide(ui->keyboard);
+    }
+}
+
 // init the xwindow and return the LV2UI handle
 static LV2UI_Handle instantiate(const struct _LV2UI_Descriptor * descriptor,
             const char * plugin_uri, const char * bundle_path,
@@ -186,6 +233,10 @@ static LV2UI_Handle instantiate(const struct _LV2UI_Descriptor * descriptor,
     // connect the value changed callback with the write_function
     ui->widget->func.value_changed_callback = value_changed;
 
+    ui->key_button = add_toggle_button(ui->win, "Keyboard", 100, 260, 60, 30);
+    ui->key_button->func.value_changed_callback = key_button_callback;
+
+
     // create a combobox widget
     ui->button = add_combobox(ui->win, "", 200, 260, 90, 30);
     combobox_add_entry(ui->button,"---");
@@ -202,6 +253,14 @@ static LV2UI_Handle instantiate(const struct _LV2UI_Descriptor * descriptor,
     ui->button->parent_struct = ui;
     // connect the value changed callback with the write_function
     ui->button->func.value_changed_callback = value_changed;
+
+    ui->keyboard = open_midi_keyboard(ui->win);
+    ui->keys = (MidiKeyboard*)ui->keyboard->parent_struct;
+    ui->keys->mk_send_note = get_note;
+    ui->keys->mk_send_pitch = get_pitch;
+    ui->keys->mk_send_mod = get_mod;
+    ui->keys->mk_send_all_sound_off = get_all_sound_off;
+    
     // finally map all Widgets on screen
     widget_show_all(ui->win);
     // set the widget pointer to the X11 Window from the toplevel Widget_t
