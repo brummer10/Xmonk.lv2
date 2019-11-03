@@ -135,30 +135,28 @@ static void window_button_release(void *w_, void* button_, void* user_data) {
 static void get_note(Widget_t *w, int *key, bool on_off) {
     X11_UI* ui = (X11_UI*)w->parent_struct;
     if (on_off) {
-        adj_set_value(w->adj_y, (float)(*key));
+        //adj_set_value(w->adj_y, (float)(*key));
         adj_changed(w,NOTE,(float)(*key));
-        adj_changed(w, GATE, 1.0);
-        fprintf(stderr, "get note on %i\n",(*key));
-    
+        adj_changed(w, GATE, 1.0);    
     } else {
-        adj_changed(w, GATE, 0.0);
-        fprintf(stderr, "get note off %i\n",(*key));
+        if(!have_key_in_matrix(ui->keys->key_matrix)) {
+            adj_changed(w, GATE, 0.0);
+        }
     }
 }
 
 static void get_pitch(Widget_t *w,int *value) {
-    X11_UI* ui = (X11_UI*)w->parent_struct;
-    fprintf(stderr, "get pitch wheel value %i\n",(*value));
+    //X11_UI* ui = (X11_UI*)w->parent_struct;
+    //fprintf(stderr, "get pitch wheel value %i\n",(*value));
 }
 
 static void get_mod(Widget_t *w,int *value) {
-    X11_UI* ui = (X11_UI*)w->parent_struct;
-    fprintf(stderr, "get mod wheel value %i\n",(*value));
+    adj_changed(w,VOWEL,(float)(*value)/32.0);
+    //fprintf(stderr, "get mod wheel value %i\n",(*value));
 }
 
 static void get_all_sound_off(Widget_t *w,int *value) {
-    X11_UI* ui = (X11_UI*)w->parent_struct;
-    fprintf(stderr, "get_all_sound_off \n");
+    adj_changed(w, GATE, 0.0);
 }
 
 static void key_button_callback(void *w_, void* user_data) {
@@ -233,7 +231,8 @@ static LV2UI_Handle instantiate(const struct _LV2UI_Descriptor * descriptor,
     // connect the value changed callback with the write_function
     ui->widget->func.value_changed_callback = value_changed;
 
-    ui->key_button = add_toggle_button(ui->win, "Keyboard", 100, 260, 60, 30);
+    ui->key_button = add_image_toggle_button(ui->win, "Keyboard", 260, 10, 30, 30);
+    widget_get_png(ui->key_button, LDVAR(midikeyboard_png));
     ui->key_button->func.value_changed_callback = key_button_callback;
 
 
