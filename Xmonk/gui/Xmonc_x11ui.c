@@ -17,6 +17,8 @@
 
 #define CONTROLS 5
 
+#define PITCHBEND_INC 0.00146484375  // 24 / (2^14), +/- 1 octave
+
 /*---------------------------------------------------------------------
 -----------------------------------------------------------------------    
                 the main LV2 handle->XWindow
@@ -37,6 +39,7 @@ typedef struct {
     MidiKeyboard *keys;
     int block_event;
     int last_key[12];
+    float pitchbend;
 
     void *controller;
     LV2UI_Write_Function write_function;
@@ -160,7 +163,7 @@ static void get_last_key(X11_UI* ui) {
     int i = 11;
     for(;i>-1;i--) {
         if(ui->last_key[i] != 0) {
-            adj_changed(ui->win,NOTE,(float)ui->last_key[i]);
+            adj_changed(ui->win,NOTE,(float)ui->last_key[i]+ui->pitchbend);
             break;
         }
     }
@@ -171,7 +174,7 @@ static void get_note(Widget_t *w, int *key, bool on_off) {
     if (on_off) {
         //adj_set_value(w->adj_y, (float)(*key));
         add_last_key(ui,key);
-        adj_changed(w,NOTE,(float)(*key));
+        adj_changed(w,NOTE,(float)(*key)+ui->pitchbend);
         adj_changed(w, GATE, 1.0);    
     } else {
         remove_last_key(ui,key);
@@ -184,7 +187,9 @@ static void get_note(Widget_t *w, int *key, bool on_off) {
 }
 
 static void get_pitch(Widget_t *w,int *value) {
-    //X11_UI* ui = (X11_UI*)w->parent_struct;
+    X11_UI* ui = (X11_UI*)w->parent_struct;
+    ui->pitchbend = (float)((*value) -64.0) * 127.0 * PITCHBEND_INC;
+    get_last_key(ui);
     //fprintf(stderr, "get pitch wheel value %i\n",(*value));
 }
 
@@ -246,6 +251,7 @@ static LV2UI_Handle instantiate(const struct _LV2UI_Descriptor * descriptor,
     for(;i<12;i++) {
         ui->last_key[i] = 0;
     }
+    ui->pitchbend = 0.0;
     // init Xputty
     main_init(&ui->main);
     // create the toplevel Window on the parentXwindow provided by the host
