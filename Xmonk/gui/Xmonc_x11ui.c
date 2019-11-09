@@ -36,6 +36,7 @@ typedef struct {
     Widget_t *keyboard;
     MidiKeyboard *keys;
     int block_event;
+    int last_key[12];
 
     void *controller;
     LV2UI_Write_Function write_function;
@@ -132,15 +133,52 @@ static void window_button_release(void *w_, void* button_, void* user_data) {
     
 }
 
+static void add_last_key(X11_UI* ui,int *key) {
+    int i = 0;
+    for(;i<12;i++) {
+        if(ui->last_key[i] == 0) {
+            ui->last_key[i] = (*key);
+            break;
+        }
+    }
+}
+
+static void remove_last_key(X11_UI* ui,int *key) {
+    int i = 0;
+    for(;i<12;i++) {
+        if(ui->last_key[i] == (*key)) {
+            ui->last_key[i] = 0;
+            break;
+        }
+    }
+    for(;i<11;i++) {
+        ui->last_key[i] = ui->last_key[i+1];
+    }
+}
+
+static void get_last_key(X11_UI* ui) {
+    int i = 11;
+    for(;i>-1;i--) {
+        if(ui->last_key[i] != 0) {
+            adj_changed(ui->win,NOTE,(float)ui->last_key[i]);
+            break;
+        }
+    }
+}
+
 static void get_note(Widget_t *w, int *key, bool on_off) {
     X11_UI* ui = (X11_UI*)w->parent_struct;
     if (on_off) {
         //adj_set_value(w->adj_y, (float)(*key));
+        add_last_key(ui,key);
         adj_changed(w,NOTE,(float)(*key));
         adj_changed(w, GATE, 1.0);    
     } else {
+        remove_last_key(ui,key);
         if(!have_key_in_matrix(ui->keys->key_matrix)) {
             adj_changed(w, GATE, 0.0);
+        } else {
+            get_last_key(ui);
         }
     }
 }
@@ -203,6 +241,10 @@ static LV2UI_Handle instantiate(const struct _LV2UI_Descriptor * descriptor,
         fprintf(stderr, "ERROR: Failed to open parentXwindow for %s\n", plugin_uri);
         free(ui);
         return NULL;
+    }
+    i = 0;
+    for(;i<12;i++) {
+        ui->last_key[i] = 0;
     }
     // init Xputty
     main_init(&ui->main);
