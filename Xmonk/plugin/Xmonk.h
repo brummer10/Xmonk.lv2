@@ -28,8 +28,8 @@
 #include <lv2/lv2plug.in/ns/ext/midi/midi.h>
 #include <lv2/lv2plug.in/ns/ext/urid/urid.h>
 
-#define PLUGIN_URI "urn:Xputty:Xmonc_"
-#define PLUGIN_UI_URI "urn:Xputty:Xmonc_gui"
+#define PLUGIN_URI "https://github.com/brummer10/Xmonk.lv2"
+#define PLUGIN_UI_URI "https://github.com/brummer10/Xmonk_gui"
 
 
 typedef enum
@@ -42,6 +42,8 @@ typedef enum
    VOWEL,
    MIDI_IN,
    SCALE,
+   SUSTAIN,
+   PANIC,
 } PortIndex;
 
 #endif //SRC_HEADERS_GXEFFECTS_H_

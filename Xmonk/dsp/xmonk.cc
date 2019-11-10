@@ -12,11 +12,11 @@
 //---------------------------------------
 // Author: Mike Olsen, CCRMA (Stanford University)
 
-// generated from file './/xmonc.dsp' by dsp2cc:
+// generated from file './/xmonk.dsp' by dsp2cc:
 // Code generated with Faust 2.15.11 (https://faust.grame.fr)
 
 
-namespace xmonc {
+namespace xmonk {
 class mydspSIG0 {
 	
   private:
@@ -101,6 +101,10 @@ private:
 	FAUSTFLOAT	*fCheckbox0_;
 	FAUSTFLOAT fCheckbox1;
 	FAUSTFLOAT	*fCheckbox1_;
+	FAUSTFLOAT fCheckbox2;
+	FAUSTFLOAT	*fCheckbox2_;
+	FAUSTFLOAT fCheckbox3;
+	FAUSTFLOAT	*fCheckbox3_;
 	double fRec3[2];
 	double fConst4;
 	double fRec4[2];
@@ -196,6 +200,8 @@ void always_inline Dsp::compute(int count, FAUSTFLOAT *output0, FAUSTFLOAT *outp
 #define fHslider1 (*fHslider1_)
 #define fCheckbox0 (*fCheckbox0_)
 #define fCheckbox1 (*fCheckbox1_)
+#define fCheckbox2 (*fCheckbox2_)
+#define fCheckbox3 (*fCheckbox3_)
 #define fHslider2 (*fHslider2_)
 
 	switch(int(fCheckbox1)) {
@@ -244,7 +250,9 @@ void always_inline Dsp::compute(int count, FAUSTFLOAT *output0, FAUSTFLOAT *outp
 	double fSlow0 = int(fCheckbox1) ? double(ref_freq * pow(2.0, (double(int(fHslider0- ref_note))/TET))) :
 		double(ref_freq * pow(2.0, (fHslider0- ref_note)/TET));
 
-	double fSlow1 = (fConst3 * (double(fHslider1)*0.1 * std::min<double>(1.0, double(fCheckbox0))));
+	int panic_gate = int(fCheckbox2 * fCheckbox3);
+	double gate = panic_gate ?  1.0 : std::min<double>(1.0, double(fCheckbox0));
+	double fSlow1 = (fConst3 * (double(fHslider1)*0.1 *gate));
 	double fSlow2 = (0.0010000000000000009 * double(fHslider2));
 	for (int i = 0; (i < count); i = (i + 1)) {
 		fRec1[0] = (fConst1 + (fRec1[1] - std::floor((fConst1 + fRec1[1]))));
@@ -392,6 +400,8 @@ void always_inline Dsp::compute(int count, FAUSTFLOAT *output0, FAUSTFLOAT *outp
 #undef fHslider1
 #undef fCheckbox0
 #undef fCheckbox1
+#undef fCheckbox2
+#undef fCheckbox3
 #undef fHslider2
 }
 
@@ -419,6 +429,12 @@ void Dsp::connect(uint32_t port,void* data)
 		break;
 	case SCALE: 
 		fCheckbox1_ = (float*)data; // , 0.0, 0.0, 6.0, 1.0 
+		break;
+	case SUSTAIN: 
+		fCheckbox2_ = (float*)data; // , 0.0, 0.0, 6.0, 1.0 
+	case PANIC: 
+		fCheckbox3_ = (float*)data; // , 0.0, 0.0, 6.0, 1.0 
+		break;
 		break;
 	default:
 		break;
@@ -450,4 +466,4 @@ typedef enum
 } PortIndex;
 */
 
-} // end namespace xmonc
+} // end namespace xmonk

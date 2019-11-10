@@ -7,7 +7,7 @@
 #include "xmidi_keyboard.h"
 
 
-#include "./Xmonc.h"
+#include "./Xmonk.h"
 
 /*---------------------------------------------------------------------
 -----------------------------------------------------------------------    
@@ -26,6 +26,7 @@
 ----------------------------------------------------------------------*/
 // png's linked in as binarys
 EXTLD(mandala_png)
+EXTLD(sustain_png)
 
 // main window struct
 typedef struct {
@@ -35,11 +36,15 @@ typedef struct {
     Widget_t *widget;
     Widget_t *button;
     Widget_t *key_button;
+    Widget_t *sustain_button;
     Widget_t *keyboard;
     MidiKeyboard *keys;
     int block_event;
     int last_key[12];
+    int sustain;
+    float panic;
     float pitchbend;
+    float sensity;
 
     void *controller;
     LV2UI_Write_Function write_function;
@@ -114,6 +119,13 @@ static void draw_window(void *w_, void* user_data) {
     
 }
 
+static void reset_panic(X11_UI* ui) {
+    if(ui->panic<0.1) {
+        ui->panic = 1.0;
+        ui->write_function(ui->controller,PANIC,sizeof(float),0,&ui->panic);
+    }
+}
+
 static void _motion(void *w_, void* user_data) {
     Widget_t *w = (Widget_t*)w_;
     if (!w) return;
@@ -126,24 +138,42 @@ static void _motion(void *w_, void* user_data) {
 static void window_button_press(void *w_, void* button, void* user_data) {
     Widget_t *w = (Widget_t*)w_;
     if (!w) return;
+    X11_UI* ui = (X11_UI*)w->parent_struct;
+    reset_panic(ui);
     adj_changed(w, GATE, 1.0);
 }
 
 static void window_button_release(void *w_, void* button_, void* user_data) {
     Widget_t *w = (Widget_t*)w_;
+    //X11_UI* ui = (X11_UI*)w->parent_struct;
     if (!w) return;
     adj_changed(w, GATE, 0.0);
     
 }
 
+static void remove_first_key(X11_UI* ui) {
+    int i = 0;
+    for(;i<11;i++) {
+        ui->last_key[i] = ui->last_key[i+1];
+    }
+    ui->last_key[i] = 0;
+}
+
 static void add_last_key(X11_UI* ui,int *key) {
     int i = 0;
+    bool set_key = false;
     for(;i<12;i++) {
         if(ui->last_key[i] == 0) {
             ui->last_key[i] = (*key);
+            set_key = true;
             break;
         }
     }
+    if(!set_key) {
+        remove_first_key(ui);
+        add_last_key(ui, key);
+    }
+    
 }
 
 static void remove_last_key(X11_UI* ui,int *key) {
@@ -157,6 +187,7 @@ static void remove_last_key(X11_UI* ui,int *key) {
     for(;i<11;i++) {
         ui->last_key[i] = ui->last_key[i+1];
     }
+    ui->last_key[i] = 0;
 }
 
 static void get_last_key(X11_UI* ui) {
@@ -172,12 +203,12 @@ static void get_last_key(X11_UI* ui) {
 static void get_note(Widget_t *w, int *key, bool on_off) {
     X11_UI* ui = (X11_UI*)w->parent_struct;
     if (on_off) {
-        //adj_set_value(w->adj_y, (float)(*key));
         add_last_key(ui,key);
+        reset_panic(ui);
         adj_changed(w,NOTE,(float)(*key)+ui->pitchbend);
         adj_changed(w, GATE, 1.0);    
     } else {
-        remove_last_key(ui,key);
+        if(!ui->sustain)remove_last_key(ui,key);
         if(!have_key_in_matrix(ui->keys->key_matrix)) {
             adj_changed(w, GATE, 0.0);
         } else {
@@ -188,9 +219,14 @@ static void get_note(Widget_t *w, int *key, bool on_off) {
 
 static void get_pitch(Widget_t *w,int *value) {
     X11_UI* ui = (X11_UI*)w->parent_struct;
-    ui->pitchbend = (float)((*value) -64.0) * 127.0 * PITCHBEND_INC;
+    ui->pitchbend = (float)((*value) -64.0) * ui->sensity * PITCHBEND_INC;
     get_last_key(ui);
     //fprintf(stderr, "get pitch wheel value %i\n",(*value));
+}
+
+static void get_sensity(Widget_t *w,int *value) {
+    X11_UI* ui = (X11_UI*)w->parent_struct;
+    ui->sensity = (float)(*value);
 }
 
 static void get_mod(Widget_t *w,int *value) {
@@ -199,7 +235,10 @@ static void get_mod(Widget_t *w,int *value) {
 }
 
 static void get_all_sound_off(Widget_t *w,int *value) {
+    X11_UI* ui = (X11_UI*)w->parent_struct;
     adj_changed(w, GATE, 0.0);
+    ui->panic = 0.0;
+    ui->write_function(ui->controller,PANIC,sizeof(float),0,&ui->panic);
 }
 
 static void key_button_callback(void *w_, void* user_data) {
@@ -213,6 +252,20 @@ static void key_button_callback(void *w_, void* user_data) {
     if (w->flags & HAS_POINTER && !adj_get_value(w->adj)){
         widget_hide(ui->keyboard);
     }
+}
+
+static void sustain_button_callback(void *w_, void* user_data) {
+    Widget_t *w = (Widget_t*)w_;
+    Widget_t *p = w->parent;
+    X11_UI* ui = (X11_UI*)p->parent_struct;
+    
+    if (w->flags & HAS_POINTER && adj_get_value(w->adj)){
+        ui->sustain = 1;
+    }
+    if (w->flags & HAS_POINTER && !adj_get_value(w->adj)){
+        ui->sustain = 0;
+    }
+    value_changed(w_, user_data);
 }
 
 // init the xwindow and return the LV2UI handle
@@ -252,6 +305,9 @@ static LV2UI_Handle instantiate(const struct _LV2UI_Descriptor * descriptor,
         ui->last_key[i] = 0;
     }
     ui->pitchbend = 0.0;
+    ui->sensity = 64.0;
+    ui->sustain = 0;
+    ui->panic = 1.0;
     // init Xputty
     main_init(&ui->main);
     // create the toplevel Window on the parentXwindow provided by the host
@@ -283,6 +339,11 @@ static LV2UI_Handle instantiate(const struct _LV2UI_Descriptor * descriptor,
     widget_get_png(ui->key_button, LDVAR(midikeyboard_png));
     ui->key_button->func.value_changed_callback = key_button_callback;
 
+    ui->sustain_button = add_image_toggle_button(ui->win, "", 135, 260, 30, 30);
+    ui->sustain_button->parent_struct = ui;
+    ui->sustain_button->data = SUSTAIN;
+    widget_get_png(ui->sustain_button, LDVAR(sustain_png));
+    ui->sustain_button->func.value_changed_callback = sustain_button_callback;
 
     // create a combobox widget
     ui->button = add_combobox(ui->win, "", 200, 260, 90, 30);
@@ -305,6 +366,7 @@ static LV2UI_Handle instantiate(const struct _LV2UI_Descriptor * descriptor,
     ui->keys = (MidiKeyboard*)ui->keyboard->parent_struct;
     ui->keys->mk_send_note = get_note;
     ui->keys->mk_send_pitch = get_pitch;
+    ui->keys->mk_send_pitchsensity = get_sensity;
     ui->keys->mk_send_mod = get_mod;
     ui->keys->mk_send_all_sound_off = get_all_sound_off;
     
@@ -363,6 +425,14 @@ static void port_event(LV2UI_Handle handle, uint32_t port_index,
             check_value_changed(ui->button->adj, &value);
             // prevent event loop between host and plugin
             ui->block_event = (int)port_index;
+        } else if (port_index == SUSTAIN) {
+            check_value_changed(ui->sustain_button->adj, &value);
+            // prevent event loop between host and plugin
+            ui->block_event = (int)port_index;
+        } else if (port_index == PANIC) {
+            ui->panic = value;
+            // prevent event loop between host and plugin
+            // ui->block_event = (int)port_index;
         }
     }
 }

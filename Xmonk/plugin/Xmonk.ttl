@@ -31,17 +31,22 @@
 @prefix midi:  <http://lv2plug.in/ns/ext/midi#> .
 
 
-<urn:Xputty:Xmonc_>
+<https://github.com/brummer10/Xmonk.lv2#me>
+	a foaf:Person ;
+	foaf:name "brummer" ;
+	rdfs:seeAlso <https://github.com/brummer10> .
+
+<https://github.com/brummer10/Xmonk.lv2>
     a lv2:Plugin ,
         lv2:GeneratorPlugin ;
-    doap:maintainer  "Example" ;
+    doap:maintainer  <https://github.com/brummer10/Xmonk.lv2#me> ;
     doap:name "Xmonk";
     doap:license <http://opensource.org/licenses/isc> ;
     lv2:requiredFeature urid:map ;
-    lv2:project <urn:Xputty:Xmonc_> ;
+    lv2:project <https://github.com/brummer10/Xmonk.lv2> ;
     lv2:optionalFeature lv2:hardRTCapable ;
 
-  guiext:ui <urn:Xputty:Xmonc_gui>;
+  guiext:ui <https://github.com/brummer10/Xmonk_gui>;
     
 rdfs:comment """
 
@@ -124,11 +129,29 @@ rdfs:comment """
         lv2:scalePoint [rdfs:label "31-TET"; rdf:value 4];
         lv2:scalePoint [rdfs:label "41-TET"; rdf:value 5];
         lv2:scalePoint [rdfs:label "53-TET"; rdf:value 6];
+    ]      , [
+        a lv2:InputPort ,
+            lv2:ControlPort ;
+        lv2:index 8 ;
+        lv2:symbol "SUSTAIN" ;
+        lv2:name "SUSTAIN" ;
+        lv2:default 0.0 ;
+        lv2:minimum 0.0 ;
+        lv2:maximum 1.0 ;
+    ]      , [
+        a lv2:InputPort ,
+            lv2:ControlPort ;
+        lv2:index 9 ;
+        lv2:symbol "PANIC" ;
+        lv2:name "PANIC" ;
+        lv2:default 1.0 ;
+        lv2:minimum 0.0 ;
+        lv2:maximum 1.0 ;
     ] .
 
-<urn:Xputty:Xmonc_gui>
+<https://github.com/brummer10/Xmonk_gui>
   a guiext:X11UI;
-  guiext:binary <Xmonc_ui.so>;
+  guiext:binary <Xmonk_ui.so>;
         lv2:extensionData guiext::idle ; 
         lv2:requiredFeature guiext:makeResident;
   .

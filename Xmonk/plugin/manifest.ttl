@@ -20,7 +20,7 @@
 @prefix lv2:  <http://lv2plug.in/ns/lv2core#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 
-<urn:Xputty:Xmonc_>
+<https://github.com/brummer10/Xmonk.lv2>
     a lv2:Plugin ;
-    lv2:binary <Xmonc.so>  ;
-    rdfs:seeAlso <Xmonc.ttl> .
+    lv2:binary <Xmonk.so>  ;
+    rdfs:seeAlso <Xmonk.ttl> .

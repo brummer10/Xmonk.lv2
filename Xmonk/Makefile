@@ -30,7 +30,7 @@
 	endif
 
 	# set bundle name
-	NAME = Xmonc
+	NAME = Xmonk
 	BUNDLE = $(NAME).lv2
 	VER = 0.1
 
@@ -46,7 +46,7 @@
 	# invoke build files
 	OBJECTS = plugin/$(NAME).cpp 
 	GUI_OBJECTS = gui/$(NAME)_x11ui.c
-	RES_OBJECTS = gui/mandala.o
+	RES_OBJECTS = gui/mandala.o gui/sustain.o
 	## output style (bash colours)
 	BLUE = "\033[1;34m"
 	RED =  "\033[1;31m"
@@ -91,13 +91,15 @@ else
 endif
 
 uninstall :
+	@rm -rf $(INSTALL_DIR)/Xmonc.lv2
 	@rm -rf $(INSTALL_DIR)/$(BUNDLE)
 	@echo ". ." $(BLUE)", done"$(NONE)
 
    #@build resource object files
-$(RES_OBJECTS) : gui/mandala.png
+$(RES_OBJECTS) : gui/mandala.png gui/sustain.png 
 	@echo $(LGREEN)"generate resource files,"$(NONE)
 	-@cd ./gui && ld -r -b binary mandala.png -o mandala.o
+	-@cd ./gui && ld -r -b binary sustain.png -o sustain.o
 
 $(NAME) : $(RES_OBJECTS)
 	$(CXX) $(CXXFLAGS) $(OBJECTS) $(LDFLAGS) -o $(NAME).so
