@@ -131,8 +131,6 @@ static void _motion(void *w_, void* user_data) {
     if (!w) return;
     adj_changed(w,VOWEL,adj_get_value(w->adj_x));
     adj_changed(w,NOTE,adj_get_value(w->adj_y));
-
-   // transparent_draw(w_,NULL); 
 }
 
 static void window_button_press(void *w_, void* button, void* user_data) {
@@ -145,7 +143,6 @@ static void window_button_press(void *w_, void* button, void* user_data) {
 
 static void window_button_release(void *w_, void* button_, void* user_data) {
     Widget_t *w = (Widget_t*)w_;
-    //X11_UI* ui = (X11_UI*)w->parent_struct;
     if (!w) return;
     adj_changed(w, GATE, 0.0);
     
@@ -221,7 +218,6 @@ static void get_pitch(Widget_t *w,int *value) {
     X11_UI* ui = (X11_UI*)w->parent_struct;
     ui->pitchbend = (float)((*value) -64.0) * ui->sensity * PITCHBEND_INC;
     get_last_key(ui);
-    //fprintf(stderr, "get pitch wheel value %i\n",(*value));
 }
 
 static void get_sensity(Widget_t *w,int *value) {
@@ -231,7 +227,6 @@ static void get_sensity(Widget_t *w,int *value) {
 
 static void get_mod(Widget_t *w,int *value) {
     adj_changed(w,VOWEL,(float)(*value)/32.0);
-    //fprintf(stderr, "get mod wheel value %i\n",(*value));
 }
 
 static void get_all_sound_off(Widget_t *w,int *value) {
@@ -431,8 +426,6 @@ static void port_event(LV2UI_Handle handle, uint32_t port_index,
             ui->block_event = (int)port_index;
         } else if (port_index == PANIC) {
             ui->panic = value;
-            // prevent event loop between host and plugin
-            // ui->block_event = (int)port_index;
         }
     }
 }

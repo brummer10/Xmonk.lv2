@@ -32,9 +32,9 @@
 
 
 <https://github.com/brummer10/Xmonk.lv2#me>
-	a foaf:Person ;
-	foaf:name "brummer" ;
-	rdfs:seeAlso <https://github.com/brummer10> .
+    a foaf:Person ;
+    foaf:name "brummer" ;
+    rdfs:seeAlso <https://github.com/brummer10> .
 
 <https://github.com/brummer10/Xmonk.lv2>
     a lv2:Plugin ,
