@@ -1,13 +1,13 @@
 
 SUBDIR := Xmonk
 
-.PHONY: $(SUBDIR) Xputty  recurse
+.PHONY: $(SUBDIR) libxputty  recurse
 
 $(MAKECMDGOALS) recurse: $(SUBDIR)
 
-Xputty:
+libxputty:
 	@exec $(MAKE) -j 1 -C $@ $(MAKECMDGOALS)
 
-$(SUBDIR): Xputty
+$(SUBDIR): libxputty
 	@exec $(MAKE) -j 1 -C $@ $(MAKECMDGOALS)
 
