@@ -236,6 +236,16 @@ static void get_all_sound_off(Widget_t *w,int *value) {
     ui->write_function(ui->controller,PANIC,sizeof(float),0,&ui->panic);
 }
 
+static void win_key_release(void *w_, void *key_, void *user_data) {
+    Widget_t *w = (Widget_t*)w_;
+    if (!w) return;
+    XKeyEvent *key = (XKeyEvent*)key_;
+    KeySym sym = XLookupKeysym (key, 0);
+    if (sym == XK_space) {
+        get_all_sound_off(w, NULL);
+    }
+}
+
 static void key_button_callback(void *w_, void* user_data) {
     Widget_t *w = (Widget_t*)w_;
     Widget_t *p = w->parent;
@@ -316,6 +326,7 @@ static LV2UI_Handle instantiate(const struct _LV2UI_Descriptor * descriptor,
     ui->win->func.value_changed_callback = _motion;
     ui->win->func.button_press_callback = window_button_press;
     ui->win->func.button_release_callback = window_button_release;
+    ui->win->func.key_release_callback = win_key_release;
     // connect the expose func
     ui->win->func.expose_callback = draw_window;
 
@@ -426,6 +437,8 @@ static void port_event(LV2UI_Handle handle, uint32_t port_index,
             ui->block_event = (int)port_index;
         } else if (port_index == PANIC) {
             ui->panic = value;
+            // prevent event loop between host and plugin
+            ui->block_event = (int)port_index;
         }
     }
 }
