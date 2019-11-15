@@ -141,6 +141,7 @@ rdfs:comment """
     ]      , [
         a lv2:InputPort ,
             lv2:ControlPort ;
+        lv2:portProperty lv2:toggled;
         lv2:index 9 ;
         lv2:symbol "PANIC" ;
         lv2:name "PANIC" ;

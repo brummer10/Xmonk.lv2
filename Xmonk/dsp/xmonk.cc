@@ -146,7 +146,7 @@ sig0(newmydspSIG0())
 
 Dsp::~Dsp() 
 {
-	deletemydspSIG0(sig0);
+
 }
 
 inline void Dsp::clear_state_f()
@@ -216,7 +216,7 @@ void always_inline Dsp::compute(int count, FAUSTFLOAT *output0, FAUSTFLOAT *outp
 		ref_note = 69.0;
 		break;
 		case(2):
-		TET = 19;
+		TET = 19.0;
 		ref_freq = 329.63;
 		ref_note = 60.0;
 		break;
