@@ -35,12 +35,12 @@ typedef struct {
     Widget_t *widget;
     Widget_t *button;
     Widget_t *key_button;
-    Widget_t *sustain_button;
+    Widget_t *sustain_slider;
     Widget_t *keyboard;
     MidiKeyboard *keys;
     int block_event;
     int last_key[12];
-    int sustain;
+    float sustain;
     float panic;
     float pitchbend;
     float sensity;
@@ -147,6 +147,13 @@ static void window_button_release(void *w_, void* button_, void* user_data) {
     
 }
 
+static void clear_key_list(X11_UI* ui) {
+    int i = 0;
+    for(;i<12;i++) {
+        ui->last_key[i] = 0;
+    }
+}
+
 static void remove_first_key(X11_UI* ui) {
     int i = 0;
     for(;i<11;i++) {
@@ -204,7 +211,7 @@ static void get_note(Widget_t *w, int *key, bool on_off) {
         adj_changed(w,NOTE,(float)(*key)+ui->pitchbend);
         adj_changed(w, GATE, 1.0);    
     } else {
-        if(!ui->sustain)remove_last_key(ui,key);
+        if(!(int)floor(ui->sustain))remove_last_key(ui,key);
         if(!have_key_in_matrix(ui->keys->key_matrix)) {
             adj_changed(w, GATE, 0.0);
         } else {
@@ -232,6 +239,7 @@ static void get_all_sound_off(Widget_t *w,int *value) {
     X11_UI* ui = (X11_UI*)w->parent_struct;
     adj_changed(w, GATE, 0.0);
     ui->panic = 0.0;
+    clear_key_list(ui);
     ui->write_function(ui->controller,PANIC,sizeof(float),0,&ui->panic);
 }
 
@@ -258,17 +266,13 @@ static void key_button_callback(void *w_, void* user_data) {
     }
 }
 
-static void sustain_button_callback(void *w_, void* user_data) {
+static void sustain_slider_callback(void *w_, void* user_data) {
     Widget_t *w = (Widget_t*)w_;
     Widget_t *p = w->parent;
     X11_UI* ui = (X11_UI*)p->parent_struct;
-    
-    if (w->flags & HAS_POINTER && adj_get_value(w->adj)){
-        ui->sustain = 1;
-    }
-    if (w->flags & HAS_POINTER && !adj_get_value(w->adj)){
-        ui->sustain = 0;
-    }
+    if((int)floor(ui->sustain) && !(int)floor(adj_get_value(w->adj)))
+        clear_key_list(ui);
+    ui->sustain = adj_get_value(w->adj);
     value_changed(w_, user_data);
 }
 
@@ -310,7 +314,7 @@ static LV2UI_Handle instantiate(const struct _LV2UI_Descriptor * descriptor,
     }
     ui->pitchbend = 0.0;
     ui->sensity = 64.0;
-    ui->sustain = 0;
+    ui->sustain = 0.0;
     ui->panic = 1.0;
     // init Xputty
     main_init(&ui->main);
@@ -345,12 +349,12 @@ static LV2UI_Handle instantiate(const struct _LV2UI_Descriptor * descriptor,
     widget_get_png(ui->key_button, LDVAR(midikeyboard_png));
     ui->key_button->func.value_changed_callback = key_button_callback;
 
-    ui->sustain_button = add_vslider(ui->win, "Sustain", 250, 10, 44, 240);
-    ui->sustain_button->scale.gravity = CENTER;
-    set_adjustment(ui->sustain_button->adj,0.0, 0.25, 0.0, 1.0, 0.005, CL_CONTINUOS);
-    ui->sustain_button->parent_struct = ui;
-    ui->sustain_button->data = SUSTAIN;
-    ui->sustain_button->func.value_changed_callback = sustain_button_callback;
+    ui->sustain_slider = add_vslider(ui->win, "Sustain", 250, 10, 44, 240);
+    ui->sustain_slider->scale.gravity = CENTER;
+    set_adjustment(ui->sustain_slider->adj,0.0, 0.0, 0.0, 1.0, 0.005, CL_CONTINUOS);
+    ui->sustain_slider->parent_struct = ui;
+    ui->sustain_slider->data = SUSTAIN;
+    ui->sustain_slider->func.value_changed_callback = sustain_slider_callback;
 
     // create a combobox widget
     ui->button = add_combobox(ui->win, "", 195, 260, 90, 30);
@@ -433,7 +437,7 @@ static void port_event(LV2UI_Handle handle, uint32_t port_index,
             // prevent event loop between host and plugin
             ui->block_event = (int)port_index;
         } else if (port_index == SUSTAIN) {
-            check_value_changed(ui->sustain_button->adj, &value);
+            check_value_changed(ui->sustain_slider->adj, &value);
             // prevent event loop between host and plugin
             ui->block_event = (int)port_index;
         } else if (port_index == PANIC) {
