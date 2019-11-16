@@ -199,7 +199,8 @@ static void get_last_key(X11_UI* ui) {
     int i = 11;
     for(;i>-1;i--) {
         if(ui->last_key[i] != 0) {
-            adj_changed(ui->win,NOTE,(float)ui->last_key[i]+ui->pitchbend);
+            float value = (float)ui->last_key[i]+ui->pitchbend;
+            check_value_changed(ui->win->adj_y, &value);
             break;
         }
     }
@@ -210,7 +211,8 @@ static void get_note(Widget_t *w, int *key, bool on_off) {
     if (on_off) {
         add_last_key(ui,key);
         reset_panic(ui);
-        adj_changed(w,NOTE,(float)(*key)+ui->pitchbend);
+        float value = (float)(*key)+ui->pitchbend;
+        check_value_changed(ui->win->adj_y, &value);
         adj_changed(w, GATE, 1.0);    
     } else {
         if(!(int)floor(ui->sustain))remove_last_key(ui,key);
@@ -234,7 +236,9 @@ static void get_sensity(Widget_t *w,int *value) {
 }
 
 static void get_mod(Widget_t *w,int *value) {
-    adj_changed(w,VOWEL,(float)(*value)/32.0);
+    X11_UI* ui = (X11_UI*)w->parent_struct;
+    float v = (float)(*value)/32.0;
+    check_value_changed(ui->win->adj_x, &v);
 }
 
 static void get_all_sound_off(Widget_t *w,int *value) {
@@ -440,14 +444,14 @@ static void port_event(LV2UI_Handle handle, uint32_t port_index,
             if (ui->midi_vowel != value) {
                 check_value_changed(ui->win->adj_x, &value);
                 // prevent event loop between host and plugin
-                ui->block_event = (int)port_index;
+                ui->block_event = VOWEL;
                 ui->midi_vowel = value;
             }
         } else if (port_index == MIDINOTE) {
             if (ui->midi_note != value) {
                 check_value_changed(ui->win->adj_y, &value);
                 // prevent event loop between host and plugin
-                ui->block_event = (int)port_index;
+                ui->block_event = NOTE;
                 ui->midi_note = value;
             }
         } else if (port_index == SCALE) {
