@@ -151,6 +151,7 @@ rdfs:comment """
     ]       , [
         a lv2:OutputPort ,
             lv2:ControlPort ;
+        lv2:portProperty lv2:notOnGUI;
         lv2:index 10 ;
         lv2:symbol "MIDINOTE" ;
         lv2:name "MIDINOTE" ;
@@ -160,6 +161,7 @@ rdfs:comment """
     ]      , [
         a lv2:OutputPort ,
             lv2:ControlPort ;
+        lv2:portProperty lv2:notOnGUI;
         lv2:index 11 ;
         lv2:symbol "MIDIVOWEL" ;
         lv2:name "MIDIVOWEL" ;
