@@ -341,7 +341,7 @@ static LV2UI_Handle instantiate(const struct _LV2UI_Descriptor * descriptor,
     // connect the value changed callback with the write_function
     ui->widget->func.value_changed_callback = value_changed;
 
-    ui->key_button = add_image_toggle_button(ui->win, "Keyboard", 10, 260, 30, 30);
+    ui->key_button = add_image_toggle_button(ui->win, "Keyboard", 15, 260, 30, 30);
     widget_get_png(ui->key_button, LDVAR(midikeyboard_png));
     ui->key_button->func.value_changed_callback = key_button_callback;
 
