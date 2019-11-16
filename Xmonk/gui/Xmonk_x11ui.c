@@ -343,6 +343,7 @@ static LV2UI_Handle instantiate(const struct _LV2UI_Descriptor * descriptor,
 
     // create a slider widget
     ui->widget = add_vslider(ui->win, "Gain", 5, 10, 44, 240);
+    ui->widget->flags |= FAST_REDRAW;
     ui->widget->scale.gravity = CENTER;
     // store the port index in the Widget_t data field
     ui->widget->data = GAIN;
@@ -358,6 +359,7 @@ static LV2UI_Handle instantiate(const struct _LV2UI_Descriptor * descriptor,
     ui->key_button->func.value_changed_callback = key_button_callback;
 
     ui->sustain_slider = add_vslider(ui->win, "Sustain", 250, 10, 44, 240);
+    ui->sustain_slider->flags |= FAST_REDRAW;
     ui->sustain_slider->scale.gravity = CENTER;
     set_adjustment(ui->sustain_slider->adj,0.0, 0.0, 0.0, 1.0, 0.005, CL_CONTINUOS);
     ui->sustain_slider->parent_struct = ui;
@@ -366,6 +368,7 @@ static LV2UI_Handle instantiate(const struct _LV2UI_Descriptor * descriptor,
 
     // create a combobox widget
     ui->button = add_combobox(ui->win, "", 195, 260, 90, 30);
+    ui->button->flags |= FAST_REDRAW;
     combobox_add_entry(ui->button,"---");
     combobox_add_entry(ui->button,"12-ET");
     combobox_add_entry(ui->button,"19-ET");
