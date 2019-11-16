@@ -432,14 +432,6 @@ static void port_event(LV2UI_Handle handle, uint32_t port_index,
             check_value_changed(ui->win->adj_y, &value);
             // prevent event loop between host and plugin
             ui->block_event = (int)port_index;
-        } else if (port_index == MIDIVOWEL) {
-            check_value_changed(ui->win->adj_x, &value);
-            // prevent event loop between host and plugin
-            ui->block_event = VOWEL;
-        } else if (port_index == MIDINOTE) {
-            check_value_changed(ui->win->adj_y, &value);
-            // prevent event loop between host and plugin
-            ui->block_event = NOTE;
         } else if (port_index == SCALE) {
             check_value_changed(ui->button->adj, &value);
             // prevent event loop between host and plugin

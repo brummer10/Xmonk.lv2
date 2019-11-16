@@ -231,12 +231,6 @@ void Xmonk_::connect_(uint32_t port,void* data)
     case PANIC:
       panic = (float*)data;
       break;
-    case MIDINOTE:
-      note = (float*)data;
-      break;
-    case MIDIVOWEL: 
-      vowel = (float*)data;
-      break;
     default:
       break;
     }
