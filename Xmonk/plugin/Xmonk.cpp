@@ -142,6 +142,7 @@ private:
   float pitchbend;
   float* vowel;
   int gatecounter;
+  bool have_midi;
 
   DenormalProtection MXCSR;
   // pointer to buffer
@@ -203,6 +204,7 @@ void Xmonk_::init_dsp_(uint32_t rate)
   delay->init_static(rate, delay); // init the DSP class
   gatecounter = 0;
   pitchbend = 0.0;
+  have_midi = false;
 }
 
 // connect the Ports used by the plug-in class
@@ -223,6 +225,12 @@ void Xmonk_::connect_(uint32_t port,void* data)
       note = (float*)data;
       break;
     case VOWEL: 
+      vowel = (float*)data;
+      break;
+    case MIDINOTE:
+      note = (float*)data;
+      break;
+    case MIDIVOWEL: 
       vowel = (float*)data;
       break;
     case GATE:
@@ -265,6 +273,7 @@ void Xmonk_::run_dsp_(uint32_t n_samples)
                 (*gate) = 1.0;
                 (*panic) = 1.0;
                 gatecounter++;
+                have_midi = true;
             break;
             case LV2_MIDI_MSG_NOTE_OFF:
               //  note_off = msg[1];
@@ -277,7 +286,8 @@ void Xmonk_::run_dsp_(uint32_t n_samples)
                 switch (msg[1]) {
                     case LV2_MIDI_CTL_MSB_MODWHEEL:
                     case LV2_MIDI_CTL_LSB_MODWHEEL:
-                        (*vowel) = (float) (msg[2]/31);
+                        (*vowel) = (float) (msg[2]/31.0);
+                        have_midi = true;
                     break;
                     case LV2_MIDI_CTL_ALL_SOUNDS_OFF:
                     case LV2_MIDI_CTL_ALL_NOTES_OFF:
@@ -298,6 +308,7 @@ void Xmonk_::run_dsp_(uint32_t n_samples)
                 (*note) = max(0.0, min((float)note_on + pitchbend, 127.0));
             break;
             default:
+                have_midi = false;
             break;
             }
         }

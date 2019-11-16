@@ -44,6 +44,8 @@ typedef struct {
     float panic;
     float pitchbend;
     float sensity;
+    float midi_note;
+    float midi_vowel;
 
     void *controller;
     LV2UI_Write_Function write_function;
@@ -316,6 +318,8 @@ static LV2UI_Handle instantiate(const struct _LV2UI_Descriptor * descriptor,
     ui->sensity = 64.0;
     ui->sustain = 0.0;
     ui->panic = 1.0;
+    ui->midi_note = 0.0;
+    ui->midi_vowel = 0.0;
     // init Xputty
     main_init(&ui->main);
     // create the toplevel Window on the parentXwindow provided by the host
@@ -432,6 +436,20 @@ static void port_event(LV2UI_Handle handle, uint32_t port_index,
             check_value_changed(ui->win->adj_y, &value);
             // prevent event loop between host and plugin
             ui->block_event = (int)port_index;
+        } else if (port_index == MIDIVOWEL) {
+            if (ui->midi_vowel != value) {
+                check_value_changed(ui->win->adj_x, &value);
+                // prevent event loop between host and plugin
+                ui->block_event = (int)port_index;
+                ui->midi_vowel = value;
+            }
+        } else if (port_index == MIDINOTE) {
+            if (ui->midi_note != value) {
+                check_value_changed(ui->win->adj_y, &value);
+                // prevent event loop between host and plugin
+                ui->block_event = (int)port_index;
+                ui->midi_note = value;
+            }
         } else if (port_index == SCALE) {
             check_value_changed(ui->button->adj, &value);
             // prevent event loop between host and plugin

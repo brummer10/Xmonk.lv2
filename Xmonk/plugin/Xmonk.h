@@ -44,6 +44,8 @@ typedef enum
    SCALE,
    SUSTAIN,
    PANIC,
+   MIDINOTE,
+   MIDIVOWEL,
 } PortIndex;
 
 #endif //SRC_HEADERS_GXEFFECTS_H_
