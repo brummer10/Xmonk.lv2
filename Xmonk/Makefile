@@ -46,7 +46,7 @@
 	# invoke build files
 	OBJECTS = plugin/$(NAME).cpp 
 	GUI_OBJECTS = gui/$(NAME)_x11ui.c
-	RES_OBJECTS = gui/mandala.o gui/sustain.o
+	RES_OBJECTS = gui/mandala.o
 	## output style (bash colours)
 	BLUE = "\033[1;34m"
 	RED =  "\033[1;31m"
@@ -96,10 +96,9 @@ uninstall :
 	@echo ". ." $(BLUE)", done"$(NONE)
 
    #@build resource object files
-$(RES_OBJECTS) : gui/mandala.png gui/sustain.png 
+$(RES_OBJECTS) : gui/mandala.png
 	@echo $(LGREEN)"generate resource files,"$(NONE)
 	-@cd ./gui && ld -r -b binary mandala.png -o mandala.o
-	-@cd ./gui && ld -r -b binary sustain.png -o sustain.o
 
 $(NAME) : $(RES_OBJECTS)
 	$(CXX) $(CXXFLAGS) $(OBJECTS) $(LDFLAGS) -o $(NAME).so

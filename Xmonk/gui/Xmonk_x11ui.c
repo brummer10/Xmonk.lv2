@@ -26,7 +26,6 @@
 ----------------------------------------------------------------------*/
 // png's linked in as binarys
 EXTLD(mandala_png)
-EXTLD(sustain_png)
 
 // main window struct
 typedef struct {
@@ -331,7 +330,8 @@ static LV2UI_Handle instantiate(const struct _LV2UI_Descriptor * descriptor,
     ui->win->func.expose_callback = draw_window;
 
     // create a slider widget
-    ui->widget = add_vslider(ui->win, "Gain", 5, 10, 40, 280);
+    ui->widget = add_vslider(ui->win, "Gain", 5, 10, 44, 240);
+    ui->widget->scale.gravity = CENTER;
     // store the port index in the Widget_t data field
     ui->widget->data = GAIN;
     // store a pointer to the X11_UI struct in the parent_struct Widget_t field
@@ -341,18 +341,19 @@ static LV2UI_Handle instantiate(const struct _LV2UI_Descriptor * descriptor,
     // connect the value changed callback with the write_function
     ui->widget->func.value_changed_callback = value_changed;
 
-    ui->key_button = add_image_toggle_button(ui->win, "Keyboard", 260, 10, 30, 30);
+    ui->key_button = add_image_toggle_button(ui->win, "Keyboard", 10, 260, 30, 30);
     widget_get_png(ui->key_button, LDVAR(midikeyboard_png));
     ui->key_button->func.value_changed_callback = key_button_callback;
 
-    ui->sustain_button = add_image_toggle_button(ui->win, "", 135, 260, 30, 30);
+    ui->sustain_button = add_vslider(ui->win, "Sustain", 250, 10, 44, 240);
+    ui->sustain_button->scale.gravity = CENTER;
+    set_adjustment(ui->sustain_button->adj,0.0, 0.25, 0.0, 1.0, 0.005, CL_CONTINUOS);
     ui->sustain_button->parent_struct = ui;
     ui->sustain_button->data = SUSTAIN;
-    widget_get_png(ui->sustain_button, LDVAR(sustain_png));
     ui->sustain_button->func.value_changed_callback = sustain_button_callback;
 
     // create a combobox widget
-    ui->button = add_combobox(ui->win, "", 200, 260, 90, 30);
+    ui->button = add_combobox(ui->win, "", 195, 260, 90, 30);
     combobox_add_entry(ui->button,"---");
     combobox_add_entry(ui->button,"12-ET");
     combobox_add_entry(ui->button,"19-ET");
