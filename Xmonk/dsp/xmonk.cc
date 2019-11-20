@@ -123,12 +123,17 @@ private:
 	double ref_note;
 	mydspSIG0* sig0;
 	double ftbl0mydspSIG0[65536];
+	int gate_switch;
 
 	void connect(uint32_t port,void* data);
 	void clear_state_f();
 	void init(uint32_t samplingFreq);
 	void compute(int count, FAUSTFLOAT *output0, FAUSTFLOAT *output1);
 public:
+	double gate;
+	double note;
+	double vowel;
+	double panic;
 	static void clear_state_f_static(Dsp*);
 	static void init_static(uint32_t samplingFreq, Dsp*);
 	static void compute_static(int count, FAUSTFLOAT *output0, FAUSTFLOAT *output1, Dsp*);
@@ -188,6 +193,11 @@ inline void Dsp::init(uint32_t samplingFreq)
 	TET = 12.0;
 	ref_freq = 440.0;
 	ref_note = 69.0;
+	gate = 0.0;
+	note = 40.0;
+	vowel = 2.0;
+	panic = 1.0;
+	gate_switch = 0;
 	clear_state_f();
 }
 
@@ -205,6 +215,16 @@ void always_inline Dsp::compute(int count, FAUSTFLOAT *output0, FAUSTFLOAT *outp
 #define fCheckbox2 (*fCheckbox2_)
 #define fCheckbox3 (*fCheckbox3_)
 #define fHslider2 (*fHslider2_)
+
+	if(gate>0.1) gate_switch = 1;
+	if(fCheckbox0>0.1) gate_switch = 0;
+
+	if(gate_switch) {
+		fHslider0 = note;
+		fCheckbox0 = gate;
+		fHslider2 = vowel;
+		fCheckbox3 = panic;
+	}
 
 	switch(int(fCheckbox1)) {
 		case(0):
@@ -253,8 +273,8 @@ void always_inline Dsp::compute(int count, FAUSTFLOAT *output0, FAUSTFLOAT *outp
 		double(ref_freq * pow(2.0, (fHslider0- ref_note)/TET));
 
 	int panic_gate = int(fCheckbox0 * fCheckbox3);
-	double gate = panic_gate ?  1.0 : std::max<double>(0.0,std::min<double>(1.0, double(fCheckbox0)+fRec11[2]))* fCheckbox3;
-	double fSlow1 = (fConst3 * (double(fHslider1)*0.1 *gate));
+	double gatetmp = panic_gate ?  1.0 : std::max<double>(0.0,std::min<double>(1.0, double(fCheckbox0)+fRec11[2]))* fCheckbox3;
+	double fSlow1 = (fConst3 * (double(fHslider1)*0.1 *gatetmp));
 	double fSlow2 = (0.0010000000000000009 * double(fHslider2));
 	for (int i = 0; (i < count); i = (i + 1)) {
 		fRec11[0] = panic_gate ? 1.0 : (fRec11[2] - (0.0002 - fCheckbox2*0.0002));
