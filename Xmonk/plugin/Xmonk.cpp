@@ -270,7 +270,7 @@ void Xmonk_::run_dsp_(uint32_t n_samples)
                 (*note) = max(0.0, min((float)note_on + pitchbend, 127.0));
                 (*gate) = 1.0;
                 (*panic) = 1.0;
-                xmonk->note = (double) note_on;
+                xmonk->note = (double) (*note);
                 xmonk->gate = 1.0;
                 xmonk->panic = 1.0;
                 gatecounter++;
