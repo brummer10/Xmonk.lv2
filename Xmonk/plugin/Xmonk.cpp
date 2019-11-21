@@ -180,6 +180,10 @@ public:
 
 // constructor
 Xmonk_::Xmonk_() :
+  note(NULL),
+  gate(NULL),
+  panic(NULL),
+  vowel(NULL),
   output(NULL),
   output1(NULL),
   xmonk(xmonk::plugin()),
@@ -299,7 +303,7 @@ void Xmonk_::run_dsp_(uint32_t n_samples)
                     break;
                     case LV2_MIDI_CTL_RESET_CONTROLLERS:
                         pitchbend = 0.0;
-                        (*vowel) = 0.0;
+                        (*vowel) = 2.0;
                     break;
                     default:
                     break;

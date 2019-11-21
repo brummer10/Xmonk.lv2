@@ -156,8 +156,8 @@ rdfs:comment """
         lv2:symbol "MIDINOTE" ;
         lv2:name "MIDINOTE" ;
         lv2:default 40.0 ;
-        lv2:minimum 28.0 ;
-        lv2:maximum 52.0 ;
+        lv2:minimum 0.0 ;
+        lv2:maximum 127.0 ;
     ]      , [
         a lv2:OutputPort ,
             lv2:ControlPort ;

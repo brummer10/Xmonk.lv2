@@ -216,8 +216,8 @@ void always_inline Dsp::compute(int count, FAUSTFLOAT *output0, FAUSTFLOAT *outp
 #define fCheckbox3 (*fCheckbox3_)
 #define fHslider2 (*fHslider2_)
 
-	if(gate>0.1) gate_switch = 1;
-	if(fCheckbox0>0.1) gate_switch = 0;
+	if(gate>0.001) gate_switch = 1;
+	if(fCheckbox0>0.001) gate_switch = 0;
 
 	if(gate_switch) {
 		fHslider0 = note;
@@ -457,9 +457,9 @@ void Dsp::connect(uint32_t port,void* data)
 		break;
 	case SUSTAIN: 
 		fCheckbox2_ = (float*)data; // , 0.0, 0.0, 6.0, 1.0 
+		break;
 	case PANIC: 
 		fCheckbox3_ = (float*)data; // , 0.0, 0.0, 6.0, 1.0 
-		break;
 		break;
 	default:
 		break;
