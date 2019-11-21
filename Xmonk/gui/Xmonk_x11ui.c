@@ -467,10 +467,10 @@ static void port_event(LV2UI_Handle handle, uint32_t port_index,
         }
         if (ui->midi_vowel != value) {
             if(value>-0.1 && value<4.1) {
-            check_value_changed(ui->win->adj_x, &value);
-            // prevent event loop between host and plugin
-            ui->block_event = VOWEL;
-            ui->midi_vowel = value;
+                check_value_changed(ui->win->adj_x, &value);
+                // prevent event loop between host and plugin
+                ui->block_event = VOWEL;
+                ui->midi_vowel = value;
             }
         }
     } else if (port_index == MIDINOTE) {
@@ -480,10 +480,10 @@ static void port_event(LV2UI_Handle handle, uint32_t port_index,
         }
         if (ui->midi_note != value) {
             if(value >-1.0 && value<127.0) {
-            check_value_changed(ui->win->adj_y, &value);
-            // prevent event loop between host and plugin
-            ui->block_event = NOTE;
-            ui->midi_note = value;
+                check_value_changed(ui->win->adj_y, &value);
+                // prevent event loop between host and plugin
+                ui->block_event = NOTE;
+                ui->midi_note = value;
             }
         }
     } else if (port_index == MIDIGATE) {
@@ -493,8 +493,8 @@ static void port_event(LV2UI_Handle handle, uint32_t port_index,
         }
         if (ui->midi_gate != value) {
             if(value>-0.1 && value<1.1) {
-            adj_changed(ui->win, GATE, value);
-            ui->midi_gate = value;
+                adj_changed(ui->win, GATE, value);
+                ui->midi_gate = value;
             }
         }
     } else if (port_index == SCALE) {
