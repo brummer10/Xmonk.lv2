@@ -276,6 +276,13 @@ static void key_button_callback(void *w_, void* user_data) {
     }
 }
 
+static void keyboard_hidden(void *w_, void* user_data) {
+    Widget_t *w = (Widget_t*)w_;
+    Widget_t *p = w->parent;
+    X11_UI* ui = (X11_UI*)p->parent_struct;
+    adj_set_value(ui->key_button->adj,0.0);
+}
+
 static void sustain_slider_callback(void *w_, void* user_data) {
     Widget_t *w = (Widget_t*)w_;
     Widget_t *p = w->parent;
@@ -393,6 +400,8 @@ static LV2UI_Handle instantiate(const struct _LV2UI_Descriptor * descriptor,
     ui->button->func.value_changed_callback = value_changed;
 
     ui->keyboard = open_midi_keyboard(ui->win);
+    ui->keyboard->flags |= HIDE_ON_DELETE;
+    ui->keyboard->func.unmap_notify_callback = keyboard_hidden;
     ui->keys = (MidiKeyboard*)ui->keyboard->parent_struct;
     ui->keys->mk_send_note = get_note;
     ui->keys->mk_send_pitch = get_pitch;
