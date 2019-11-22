@@ -141,6 +141,9 @@ private:
   float* panic;
   float pitchbend;
   float* vowel;
+  float* ui_note;
+  float* ui_gate;
+  float* ui_vowel;
   float* sustain;
   float _sustain;
   int gatecounter;
@@ -244,6 +247,15 @@ void Xmonk_::connect_(uint32_t port,void* data)
     case MIDIGATE:
       gate = (float*)data;
       break;
+    case NOTE:
+      ui_note = (float*)data;
+      break;
+    case VOWEL:
+      ui_vowel = (float*)data;
+      break;
+    case GATE:
+      ui_gate = (float*)data;
+      break;
     case PANIC:
       panic = (float*)data;
       break;
@@ -320,6 +332,7 @@ void Xmonk_::get_last_key() {
     for(;i>-1;i--) {
         if(last_key[i] != 0) {
             (*note) = (float)last_key[i]+pitchbend;
+            (*ui_note) = (float)last_key[i]+pitchbend;
             xmonk->note = (double) (*note);
             break;
         }
@@ -344,7 +357,9 @@ void Xmonk_::run_dsp_(uint32_t n_samples)
             case LV2_MIDI_MSG_NOTE_ON:
                 note_on = msg[1];
                 (*note) = max(0.0, min((float)note_on + pitchbend, 127.0));
+                (*ui_note) = max(0.0, min((float)note_on + pitchbend, 127.0));
                 (*gate) = 1.0;
+                (*ui_gate) = 1.0;
                 (*panic) = 1.0;
                 xmonk->note = (double) (*note);
                 xmonk->gate = 1.0;
@@ -360,6 +375,7 @@ void Xmonk_::run_dsp_(uint32_t n_samples)
                 gatecounter--;
                 if (!gatecounter) {
                     (*gate) = 0.0;
+                    (*ui_gate) = 0.0;
                     xmonk->gate = 0.0;
                 } else {
                     get_last_key();
@@ -370,6 +386,7 @@ void Xmonk_::run_dsp_(uint32_t n_samples)
                     case LV2_MIDI_CTL_MSB_MODWHEEL:
                     case LV2_MIDI_CTL_LSB_MODWHEEL:
                         (*vowel) = (float) (msg[2]/31.0);
+                        (*ui_vowel) = (float) (msg[2]/31.0);
                         xmonk->vowel = (double)(*vowel);
                         have_midi = true;
                     break;
@@ -377,6 +394,7 @@ void Xmonk_::run_dsp_(uint32_t n_samples)
                     case LV2_MIDI_CTL_ALL_NOTES_OFF:
                         gatecounter = 0;
                         (*gate) = 0.0;
+                        (*ui_gate) = 0.0;
                         (*panic) = 0.0;
                         xmonk->gate = 0.0;
                         xmonk->panic = 0.0;
@@ -392,6 +410,7 @@ void Xmonk_::run_dsp_(uint32_t n_samples)
             case LV2_MIDI_MSG_BENDER:
                 pitchbend = ((msg[2] << 7 | msg[1]) - 8192) * PITCHBEND_INC;
                 (*note) = max(0.0, min((float)note_on + pitchbend, 127.0));
+                (*ui_note) = max(0.0, min((float)note_on + pitchbend, 127.0));
                 xmonk->note = (double) (*note);
             break;
             default:
