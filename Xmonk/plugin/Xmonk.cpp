@@ -141,8 +141,11 @@ private:
   float* panic;
   float pitchbend;
   float* vowel;
+  float* sustain;
+  float _sustain;
   int gatecounter;
   bool have_midi;
+  uint8_t last_key[12];
 
   DenormalProtection MXCSR;
   // pointer to buffer
@@ -161,6 +164,12 @@ private:
   inline void activate_f();
   inline void clean_up();
   inline void deactivate_f();
+
+  void clear_key_list();
+  void remove_first_key();
+  void add_last_key(uint8_t *key);
+  void remove_last_key(uint8_t *key);
+  void get_last_key();
 
 public:
   // LV2 Descriptor
@@ -208,6 +217,7 @@ void Xmonk_::init_dsp_(uint32_t rate)
   delay->init_static(rate, delay); // init the DSP class
   gatecounter = 0;
   pitchbend = 0.0;
+  clear_key_list();
   have_midi = false;
 }
 
@@ -237,6 +247,9 @@ void Xmonk_::connect_(uint32_t port,void* data)
     case PANIC:
       panic = (float*)data;
       break;
+    case SUSTAIN:
+      sustain = (float*)data;
+      break;
     default:
       break;
     }
@@ -257,10 +270,73 @@ void Xmonk_::deactivate_f()
   delay->clear_state_f_static(delay);
 }
 
+void Xmonk_::clear_key_list() {
+    int i = 0;
+    for(;i<12;i++) {
+        last_key[i] = 0;
+    }
+}
+
+void Xmonk_::remove_first_key() {
+    int i = 0;
+    for(;i<11;i++) {
+        last_key[i] = last_key[i+1];
+    }
+    last_key[i] = 0;
+}
+
+void Xmonk_::add_last_key(uint8_t *key) {
+    int i = 0;
+    bool set_key = false;
+    for(;i<12;i++) {
+        if(last_key[i] == 0) {
+            last_key[i] = (*key);
+            set_key = true;
+            break;
+        }
+    }
+    if(!set_key) {
+        remove_first_key();
+        add_last_key(key);
+    }
+}
+
+void Xmonk_::remove_last_key(uint8_t *key) {
+    int i = 0;
+    for(;i<12;i++) {
+        if(last_key[i] == (*key)) {
+            last_key[i] = 0;
+            break;
+        }
+    }
+    for(;i<11;i++) {
+        last_key[i] = last_key[i+1];
+    }
+    last_key[i] = 0;
+}
+
+void Xmonk_::get_last_key() {
+    int i = 11;
+    for(;i>-1;i--) {
+        if(last_key[i] != 0) {
+            (*note) = (float)last_key[i]+pitchbend;
+            xmonk->note = (double) (*note);
+            break;
+        }
+    }
+}
+
 void Xmonk_::run_dsp_(uint32_t n_samples)
 {
     if(n_samples<1) return;
     MXCSR.set_();
+
+    if((*sustain) != _sustain) {
+        if(!(int)floor((*sustain)) && (int)floor((_sustain)))
+            clear_key_list();
+       _sustain = (*sustain); 
+    }
+    
     LV2_ATOM_SEQUENCE_FOREACH(control, ev) {
         if (ev->body.type == midi_MidiEvent) {
             const uint8_t* const msg = (const uint8_t*)(ev + 1);
@@ -274,15 +350,19 @@ void Xmonk_::run_dsp_(uint32_t n_samples)
                 xmonk->gate = 1.0;
                 xmonk->panic = 1.0;
                 gatecounter++;
+                add_last_key(&note_on);
                 have_midi = true;
             break;
             case LV2_MIDI_MSG_NOTE_OFF:
-              //  note_off = msg[1];
+                note_off = msg[1];
               //  (*note) = (float)note_off;
+                if(!(int)floor((*sustain))) remove_last_key(&note_off);
                 gatecounter--;
                 if (!gatecounter) {
                     (*gate) = 0.0;
                     xmonk->gate = 0.0;
+                } else {
+                    get_last_key();
                 }
             break;
             case LV2_MIDI_MSG_CONTROLLER:
