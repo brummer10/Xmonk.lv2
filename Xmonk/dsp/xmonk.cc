@@ -269,8 +269,9 @@ void always_inline Dsp::compute(int count, FAUSTFLOAT *output0, FAUSTFLOAT *outp
 		break;
 	}
 
-	double fSlow0 = int(fCheckbox1) ? double(ref_freq * pow(2.0, (double(int(fHslider0- ref_note))/TET))) :
-		double(ref_freq * pow(2.0, (fHslider0- ref_note)/TET));
+	double tempnote = std::min<double>(84.0, fHslider0);
+	double fSlow0 = int(fCheckbox1) ? double(ref_freq * pow(2.0, (double(int(tempnote- ref_note))/TET))) :
+		double(ref_freq * pow(2.0, (tempnote - ref_note)/TET));
 
 	int panic_gate = int(fCheckbox0 * fCheckbox3);
 	double gatetmp = panic_gate ?  1.0 : std::max<double>(0.0,std::min<double>(1.0, double(fCheckbox0)+fRec11[2]))* fCheckbox3;
