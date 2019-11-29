@@ -38,10 +38,10 @@
 	HEADER_DIR := $(LIB_DIR)include/
 
 	# set compile flags
-	CXXFLAGS += -I. -I./dsp -I./plugin -fPIC -DPIC -O2 -Wall -funroll-loops \
-	-ffast-math -fomit-frame-pointer -fstrength-reduce -fdata-sections -Wl,--gc-sections $(SSE_CFLAGS)
-	LDFLAGS += -I. -shared -lm 
-	GUI_LDFLAGS += -I./gui -I$(HEADER_DIR) \
+	CXXFLAGS += -D_FORTIFY_SOURCE=2 -I. -I./dsp -I./plugin -fPIC -DPIC -O2 -Wall -funroll-loops \
+	-fstack-protector -ffast-math -fomit-frame-pointer -fstrength-reduce -fdata-sections -Wl,--gc-sections -Wl,-z,relro,-z,now $(SSE_CFLAGS)
+	LDFLAGS += -I. -shared -lm -Wl,-z,noexecstack 
+	GUI_LDFLAGS += -I./gui -I$(HEADER_DIR) -Wl,-z,noexecstack \
 	-L. $(LIB_DIR)libxputty.a -shared `pkg-config --cflags --libs cairo x11` -lm 
 	# invoke build files
 	OBJECTS = plugin/$(NAME).cpp 
@@ -103,12 +103,12 @@ $(RES_OBJECTS) : gui/mandala.png
 $(NAME) : $(RES_OBJECTS)
 	$(CXX) $(CXXFLAGS) $(OBJECTS) $(LDFLAGS) -o $(NAME).so
 	$(CC) $(CXXFLAGS) -Wl,-z,nodelete $(GUI_OBJECTS) $(RES_OBJECTS) $(GUI_LDFLAGS) -o $(NAME)_ui.so
-	$(STRIP) -s -x -X -R .note.ABI-tag $(NAME).so
-	$(STRIP) -s -x -X -R .note.ABI-tag $(NAME)_ui.so
+	$(STRIP) -s -x -X -R .comment -R .note.ABI-tag $(NAME).so
+	$(STRIP) -s -x -X -R .comment -R .note.ABI-tag $(NAME)_ui.so
 
 nogui :
 	$(CXX) $(CXXFLAGS) $(OBJECTS) $(LDFLAGS) -o $(NAME).so
-	$(STRIP) -s -x -X -R .note.ABI-tag $(NAME).so
+	$(STRIP) -s -x -X -R .comment -R .note.ABI-tag $(NAME).so
 
 doc:
 	#pass
