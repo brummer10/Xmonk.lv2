@@ -29,6 +29,7 @@
 @prefix atom:  <http://lv2plug.in/ns/ext/atom#> .
 @prefix urid:  <http://lv2plug.in/ns/ext/urid#> .
 @prefix midi:  <http://lv2plug.in/ns/ext/midi#> .
+@prefix pprop: <http://lv2plug.in/ns/ext/port-props#> .
 
 
 <https://github.com/brummer10/Xmonk.lv2#me>
@@ -47,7 +48,10 @@
     lv2:optionalFeature lv2:hardRTCapable ;
 
   guiext:ui <https://github.com/brummer10/Xmonk_gui>;
-    
+
+    lv2:minorVersion 0;
+    lv2:microVersion 4;
+
 rdfs:comment """
 
 ...
@@ -151,7 +155,7 @@ rdfs:comment """
     ]       , [
         a lv2:OutputPort ,
             lv2:ControlPort ;
-        lv2:portProperty lv2:notOnGUI;
+        lv2:portProperty pprop:notOnGUI;
         lv2:index 10 ;
         lv2:symbol "MIDINOTE" ;
         lv2:name "MIDINOTE" ;
@@ -161,7 +165,7 @@ rdfs:comment """
     ]      , [
         a lv2:OutputPort ,
             lv2:ControlPort ;
-        lv2:portProperty lv2:notOnGUI;
+        lv2:portProperty pprop:notOnGUI;
         lv2:index 11 ;
         lv2:symbol "MIDIVOWEL" ;
         lv2:name "MIDIVOWEL" ;
@@ -171,7 +175,7 @@ rdfs:comment """
     ]      , [
         a lv2:OutputPort ,
             lv2:ControlPort ;
-        lv2:portProperty lv2:notOnGUI;
+        lv2:portProperty pprop:notOnGUI;
         lv2:portProperty lv2:toggled;
         lv2:index 12 ;
         lv2:symbol "MIDIGATE" ;
@@ -184,6 +188,9 @@ rdfs:comment """
 <https://github.com/brummer10/Xmonk_gui>
   a guiext:X11UI;
   guiext:binary <Xmonk_ui.so>;
-        lv2:extensionData guiext::idle ; 
+        lv2:extensionData guiext::idle ;
+        lv2:extensionData guiext:resize ;
+        lv2:extensionData guiext:idleInterface;
         lv2:requiredFeature guiext:makeResident;
+        lv2:requiredFeature guiext:idleInterface; 
   .

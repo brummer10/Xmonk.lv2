@@ -32,21 +32,21 @@
 	# set bundle name
 	NAME = Xmonk
 	BUNDLE = $(NAME).lv2
-	VER = 0.3
+	VER = 0.4
 
 	LIB_DIR := ../libxputty/libxputty/
 	HEADER_DIR := $(LIB_DIR)include/
 
 	# set compile flags
 	CXXFLAGS += -D_FORTIFY_SOURCE=2 -I. -I./dsp -I./plugin -fPIC -DPIC -O2 -Wall -funroll-loops \
-	-fstack-protector -ffast-math -fomit-frame-pointer -fstrength-reduce -fdata-sections -Wl,--gc-sections -Wl,-z,relro,-z,now $(SSE_CFLAGS)
-	LDFLAGS += -I. -shared -lm -Wl,-z,noexecstack 
-	GUI_LDFLAGS += -I./gui -I$(HEADER_DIR) -Wl,-z,noexecstack \
+	-fstack-protector -ffast-math -fomit-frame-pointer -fstrength-reduce \
+	-fdata-sections -Wl,--gc-sections -Wl,-z,relro,-z,now -Wl,--exclude-libs,ALL $(SSE_CFLAGS)
+	LDFLAGS += -I. -shared -lm -Wl,-z,noexecstack -fvisibility=hidden
+	GUI_LDFLAGS += -I./gui -I$(HEADER_DIR) -Wl,-z,noexecstack -fvisibility=hidden \
 	-L. $(LIB_DIR)libxputty.a -shared `pkg-config --cflags --libs cairo x11` -lm 
 	# invoke build files
 	OBJECTS = plugin/$(NAME).cpp 
 	GUI_OBJECTS = gui/$(NAME)_x11ui.c
-	RES_OBJECTS = gui/mandala.o
 	## output style (bash colours)
 	BLUE = "\033[1;34m"
 	RED =  "\033[1;31m"
@@ -95,14 +95,9 @@ uninstall :
 	@rm -rf $(INSTALL_DIR)/$(BUNDLE)
 	@echo ". ." $(BLUE)", done"$(NONE)
 
-   #@build resource object files
-$(RES_OBJECTS) : gui/mandala.png
-	@echo $(LGREEN)"generate resource files,"$(NONE)
-	-@cd ./gui && ld -r -b binary mandala.png -o mandala.o
-
-$(NAME) : $(RES_OBJECTS)
+$(NAME) :
 	$(CXX) $(CXXFLAGS) $(OBJECTS) $(LDFLAGS) -o $(NAME).so
-	$(CC) $(CXXFLAGS) -Wl,-z,nodelete $(GUI_OBJECTS) $(RES_OBJECTS) $(GUI_LDFLAGS) -o $(NAME)_ui.so
+	$(CC) $(CXXFLAGS) -Wl,-z,nodelete $(GUI_OBJECTS) $(GUI_LDFLAGS) -o $(NAME)_ui.so
 	$(STRIP) -s -x -X -R .comment -R .note.ABI-tag $(NAME).so
 	$(STRIP) -s -x -X -R .comment -R .note.ABI-tag $(NAME)_ui.so
 

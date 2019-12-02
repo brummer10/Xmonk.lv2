@@ -24,8 +24,6 @@
                 the main LV2 handle->XWindow
 -----------------------------------------------------------------------
 ----------------------------------------------------------------------*/
-// png's linked in as binarys
-EXTLD(mandala_png)
 
 // main window struct
 typedef struct {

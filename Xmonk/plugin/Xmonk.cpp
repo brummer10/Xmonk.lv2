@@ -402,6 +402,8 @@ void Xmonk_::run_dsp_(uint32_t n_samples)
                     case LV2_MIDI_CTL_RESET_CONTROLLERS:
                         pitchbend = 0.0;
                         (*vowel) = 2.0;
+                        (*ui_vowel) = 2.0;
+                        xmonk->vowel = 2.0;
                     break;
                     default:
                     break;
