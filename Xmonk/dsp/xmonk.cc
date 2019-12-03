@@ -124,6 +124,7 @@ private:
 	mydspSIG0* sig0;
 	double ftbl0mydspSIG0[65536];
 	int gate_switch;
+	double max_note;
 
 	void connect(uint32_t port,void* data);
 	void clear_state_f();
@@ -198,6 +199,7 @@ inline void Dsp::init(uint32_t samplingFreq)
 	vowel = 2.0;
 	panic = 1.0;
 	gate_switch = 0;
+	max_note = 84.0;
 	clear_state_f();
 }
 
@@ -231,45 +233,53 @@ void always_inline Dsp::compute(int count, FAUSTFLOAT *output0, FAUSTFLOAT *outp
 		TET = 12.0;
 		ref_freq = 440.0;
 		ref_note = 69.0;
+		max_note = 84.0;
 		break;
 		case(1):
 		TET = 12.0;
 		ref_freq = 440.0;
 		ref_note = 69.0;
+		max_note = 84.0;
 		break;
 		case(2):
 		TET = 19.0;
 		ref_freq = 329.63;
 		ref_note = 60.0;
+		max_note = 94.0;
 		break;
 		case(3):
 		TET = 24.0;
 		ref_freq = 220.0;
 		ref_note = 57.0;
+		max_note = 108.0;
 		break;
 		case(4):
 		TET = 31.0;
 		ref_freq = 196.0;
 		ref_note = 55.0;
+		max_note = 127.0;
 		break;
 		case(5):
 		TET = 41.0;
 		ref_freq = 164.81;
 		ref_note = 52.0;
+		max_note = 127.0;
 		break;
 		case(6):
 		TET = 53.0;
 		ref_freq = 146.83;
 		ref_note = 50.0;
+		max_note = 127.0;
 		break;
 		default:
 		TET = 12.0;
 		ref_freq = 440.0;
 		ref_note = 69.0;
+		max_note = 84.0;
 		break;
 	}
 
-	double tempnote = std::min<double>(84.0, fHslider0);
+	double tempnote = std::min<double>(max_note, fHslider0);
 	double fSlow0 = int(fCheckbox1) ? double(ref_freq * pow(2.0, (double(int(tempnote- ref_note))/TET))) :
 		double(ref_freq * pow(2.0, (tempnote - ref_note)/TET));
 
