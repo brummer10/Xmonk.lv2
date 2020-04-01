@@ -13,6 +13,7 @@ A LV2 toy
 
 - libcairo2-dev
 - libx11-dev
+- lv2-dev
 
 ## Build
 - git submodule init
