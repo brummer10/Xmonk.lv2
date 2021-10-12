@@ -9,7 +9,9 @@
 	endif
 
 	# check CPU and supported optimization flags
-	ifneq ($(shell cat /proc/cpuinfo | grep sse3 ) , )
+	ifneq ($(findstring riscv64 , $(shell uname -a )) , )
+		SSE_CFLAGS = 
+	else ifneq ($(shell cat /proc/cpuinfo | grep sse3 ) , )
 		SSE_CFLAGS = -msse3 -mfpmath=sse
 	else ifneq ($(shell cat /proc/cpuinfo | grep sse2 ) , )
 		SSE_CFLAGS = -msse2 -mfpmath=sse
