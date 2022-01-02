@@ -5,6 +5,7 @@
 // xwidgets.h includes xputty.h and all defined widgets from Xputty
 #include "xwidgets.h"
 #include "xmidi_keyboard.h"
+#include "xresources.h"
 
 
 #include "./Xmonk.h"

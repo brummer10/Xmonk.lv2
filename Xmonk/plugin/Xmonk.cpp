@@ -115,6 +115,7 @@ public:
 #ifdef __SSE__
     mxcsr_mask = 0xffbf; // Default MXCSR mask
     mxcsr      = 0;
+#if defined(__x86_64__) || defined(_M_X64)
     uint8_t fxsave[512] __attribute__ ((aligned (16))); // Structure for storing FPU state with FXSAVE command
 
     memset(fxsave, 0, sizeof(fxsave));
@@ -122,6 +123,7 @@ public:
     uint32_t mask = *(reinterpret_cast<uint32_t *>(&fxsave[0x1c])); // Obtain the MXCSR mask from FXSAVE structure
     if (mask != 0)
         mxcsr_mask = mask;
+#endif
 #endif
   };
 
