@@ -62,19 +62,19 @@ else ifeq ($(TARGET), Windows)
 	`$(PKGCONFIG) $(PKGCONFIG_FLAGS) --cflags --libs cairo ` \
 	-L. $(LIB_DIR)libxputty.$(STATIC_LIB_EXT) -shared  -lm $(PAWPAW_LFLAGS)
 
-	TTLUPDATE = sed -i '/lv2:binary/ s/\.so/\.dll/ ' $(BUNDLE)/manifest.ttl
-	TTLUPDATEGUI = sed -i '/a guiext:X11UI/ s/X11UI/WindowsUI/ ; /guiext:binary/ s/\.so/\.dll/ ' $(BUNDLE)/$(NAME).ttl
+	TTLUPDATE = sed -i '/lv2:binary/ s/\.so/\.dll/ ' ../bin/$(BUNDLE)/manifest.ttl
+	TTLUPDATEGUI = sed -i '/a guiext:X11UI/ s/X11UI/WindowsUI/ ; /guiext:binary/ s/\.so/\.dll/ ' ../bin/$(BUNDLE)/$(NAME).ttl
 endif
 
 .PHONY : $(HEADER_DIR)*.h mod all clean install uninstall 
 
 all : check $(NAME)
-	$(QUIET)mkdir -p ./$(BUNDLE)
-	$(QUIET)cp ./plugin/*.ttl ./$(BUNDLE)
+	$(QUIET)mkdir -p ../bin/$(BUNDLE)
+	$(QUIET)cp ./plugin/*.ttl ../bin/$(BUNDLE)
 	$(QUIET)$(TTLUPDATE)
 	$(QUIET)$(TTLUPDATEGUI)
-	$(QUIET)mv ./*.$(LIB_EXT) ./$(BUNDLE)
-	$(QUIET)if [ -f ./$(BUNDLE)/$(NAME).$(LIB_EXT) ]; then \
+	$(QUIET)mv ./*.$(LIB_EXT) ../bin/$(BUNDLE)
+	$(QUIET)if [ -f ../bin/$(BUNDLE)/$(NAME).$(LIB_EXT) ]; then \
 		$(B_ECHO) "build finish, . . . $(reset)"; \
 	else \
 		$(R_ECHO) "sorry, build failed$(reset)"; \
@@ -92,24 +92,24 @@ endif
 clean :
 	$(QUIET)rm -f *.a *.o *.$(LIB_EXT) 
 	$(QUIET)rm -f $(NAME).$(LIB_EXT)
-	$(QUIET)rm -rf ./$(BUNDLE)
+	$(QUIET)rm -rf ../bin
 ifndef EXTRAQUIET
 	@$(ECHO) ". ., clean up$(reset)"
 endif
 
 dist-clean :
 	$(QUIET)rm -f $(NAME).$(LIB_EXT)
-	$(QUIET)rm -rf ./$(BUNDLE)
+	$(QUIET)rm -rf ../bin
 ifndef EXTRAQUIET
 	@$(ECHO) ". ., clean up$(reset)"
 endif
 
 install :
 ifeq ($(TARGET), Linux)
-ifneq ("$(wildcard ./$(BUNDLE))","")
+ifneq ("$(wildcard ../bin/$(BUNDLE))","")
 	@$(ECHO) "Install Xmonc.lv2$(reset)"
 	$(QUIET)mkdir -p $(DESTDIR)$(INSTALL_DIR)/$(BUNDLE)
-	$(QUIET)cp -r ./$(BUNDLE)/* $(DESTDIR)$(INSTALL_DIR)/$(BUNDLE)
+	$(QUIET)cp -r ../bin/$(BUNDLE)/* $(DESTDIR)$(INSTALL_DIR)/$(BUNDLE)
 	$(QUIET)$(B_ECHO) ". . , done$(reset)"
 else
 	$(QUIET)$(R_ECHO) ". . , you must build first$(reset)"
