@@ -1,5 +1,5 @@
 # Xmonk.lv2
-A LV2 toy
+An LV2 toy
 
 ![xmonk](https://github.com/brummer10/Xmonk.lv2/raw/master/xmonk.png)
 
