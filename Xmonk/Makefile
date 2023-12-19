@@ -29,128 +29,116 @@
 		SSE_CFLAGS =
 	endif
 
-	# check LD version
-	ifneq ($(shell xxd --version 2>&1 | head -n 1 | grep xxd),)
-		USE_XXD = 1
-	else ifneq ($(shell $(LD) --version 2>&1 | head -n 1 | grep LLD),)
-		ifneq ($(shell uname -a | grep  x86_64), )
-			LDEMULATION := elf_x86_64
-		else ifneq ($(shell uname -a | grep amd64), )
-			LDEMULATION := elf_x86_64
-		else ifneq ($(shell uname -a | grep i386), )
-			LDEMULATION := elf_i386
-		endif
-		USE_LDD = 1
-	else ifneq ($(shell gold --version 2>&1 | head -n 1 | grep gold),)
-		LD = gold
-	endif
-
 	# set bundle name
 	NAME = Xmonk
 	BUNDLE = $(NAME).lv2
 	VER = 0.4
 
-	RESOURCES_DIR :=./gui/
 	LIB_DIR := ../libxputty/libxputty/
 	HEADER_DIR := $(LIB_DIR)include/
 
-	RESOURCES := $(wildcard $(RESOURCES_DIR)*.png)
-	RESOURCES_OBJ := $(notdir $(patsubst %.png,%.o,$(RESOURCES)))
-	RESOURCES_LIB := $(notdir $(patsubst %.png,%.a,$(RESOURCES)))
-	RESOURCE_EXTLD := $(notdir $(patsubst %.png,%_png,$(RESOURCES)))
-	RESOURCEHEADER := xresources.h
-	# set compile flags
-	CXXFLAGS += -D_FORTIFY_SOURCE=2 -I. -I./dsp -I./plugin -fPIC -DPIC -O2 -Wall -funroll-loops \
-	-fstack-protector -ffast-math -fomit-frame-pointer -fstrength-reduce \
-	-fdata-sections -Wl,--gc-sections -Wl,-z,relro,-z,now -Wl,--exclude-libs,ALL $(SSE_CFLAGS)
-	LDFLAGS += -I. -shared -lm -Wl,-z,noexecstack -fvisibility=hidden
-	GUI_LDFLAGS += -I./gui -I$(HEADER_DIR) -Wl,-z,noexecstack -fvisibility=hidden \
-	-L. $(LIB_DIR)libxputty.a -shared `pkg-config --cflags --libs cairo x11` -lm 
 	# invoke build files
 	OBJECTS = plugin/$(NAME).cpp 
 	GUI_OBJECTS = gui/$(NAME)_x11ui.c
-	## output style (bash colours)
-	BLUE = "\033[1;34m"
-	RED =  "\033[1;31m"
-	NONE = "\033[0m"
+
+	# set compile flags
+ifeq ($(TARGET), Linux)
+	CXXFLAGS += -D_FORTIFY_SOURCE=2 -I. -I./dsp -I./plugin -fPIC -DPIC -O2 -Wall -funroll-loops \
+	-fstack-protector -ffast-math -fomit-frame-pointer -fstrength-reduce \
+	-fdata-sections -Wl,--gc-sections -Wl,-z,relro,-z,now -Wl,--exclude-libs,ALL $(SSE_CFLAGS)
+
+	LDFLAGS += -I. -shared -lm -Wl,-z,noexecstack -fvisibility=hidden
+
+	GUI_LDFLAGS += -I./gui -I./plugin -I$(HEADER_DIR) -Wl,-z,noexecstack -fvisibility=hidden \
+	-L. $(LIB_DIR)libxputty.a -shared `pkg-config --cflags --libs cairo x11` -lm -Wl,-z,nodelete 
+else ifeq ($(TARGET), Windows)
+	CXXFLAGS += -D_FORTIFY_SOURCE=2 -I. -I./dsp -I./plugin -fPIC -DPIC -O2 -Wall -funroll-loops \
+	-fstack-protector -ffast-math -fomit-frame-pointer -fstrength-reduce \
+	-fdata-sections -Wl,--gc-sections -Wl,--exclude-libs,ALL $(SSE_CFLAGS)
+
+	LDFLAGS += -I. -shared -lm $(PAWPAW_LFLAGS)
+
+	GUI_LDFLAGS += -I./gui -I./plugin -I$(HEADER_DIR) -static-libgcc -static-libstdc++ \
+	`$(PKGCONFIG) $(PKGCONFIG_FLAGS) --cflags --libs cairo ` \
+	-L. $(LIB_DIR)libxputty.$(STATIC_LIB_EXT) -shared  -lm $(PAWPAW_LFLAGS)
+
+	TTLUPDATE = sed -i '/lv2:binary/ s/\.so/\.dll/ ' $(BUNDLE)/manifest.ttl
+	TTLUPDATEGUI = sed -i '/a guiext:X11UI/ s/X11UI/WindowsUI/ ; /guiext:binary/ s/\.so/\.dll/ ' $(BUNDLE)/$(NAME).ttl
+endif
 
 .PHONY : $(HEADER_DIR)*.h mod all clean install uninstall 
 
-all : $(RESOURCEHEADER) check $(NAME)
-	@mkdir -p ./$(BUNDLE)
-	@cp ./plugin/*.ttl ./$(BUNDLE)
-	@mv ./*.so ./$(BUNDLE)
-	@if [ -f ./$(BUNDLE)/$(NAME).so ]; then echo $(BLUE)"build finish, now run make install"; \
-	else echo $(RED)"sorry, build failed"; fi
-	@echo $(NONE)
+all : check $(NAME)
+	$(QUIET)mkdir -p ./$(BUNDLE)
+	$(QUIET)cp ./plugin/*.ttl ./$(BUNDLE)
+	$(QUIET)$(TTLUPDATE)
+	$(QUIET)$(TTLUPDATEGUI)
+	$(QUIET)mv ./*.$(LIB_EXT) ./$(BUNDLE)
+	$(QUIET)if [ -f ./$(BUNDLE)/$(NAME).$(LIB_EXT) ]; then \
+		$(B_ECHO) "build finish, . . . $(reset)"; \
+	else \
+		$(R_ECHO) "sorry, build failed$(reset)"; \
+	fi
+	@$(B_ECHO) "=================== DONE =======================$(reset)"
 
 mod : 
-	@echo "Not implemented for Gxgain"
+	@$(R_ECHO) "Not implemented for Xmonk$(reset)"
 
 check :
 ifdef ARMCPU
-	@echo $(RED)ARM CPU DEDECTED, please check the optimization flags
-	@echo $(NONE)
-endif
-
-$(RESOURCEHEADER): $(RESOURCES_OBJ)
-	rm -f $(RESOURCEHEADER)
-	for f in $(RESOURCE_EXTLD); do \
-		echo 'EXTLD('$${f}')' >> $(RESOURCEHEADER) ; \
-	done
-
-ifdef USE_XXD
-$(RESOURCES_OBJ): $(RESOURCES)
-	@#use this line to regenerate the *.c files from used images
-	@cd $(RESOURCES_DIR) && xxd -i $(patsubst %.o,%.png,$@) > $(patsubst %.o,%.c,$@)
-	$(CC) -c $(RESOURCES_DIR)$(patsubst %.o,%.c,$@) -o $@
-	$(AR) rcs $(patsubst %.o,%.a,$@) $@
-else ifdef USE_LDD
-$(RESOURCES_OBJ): $(RESOURCES)
-	cd $(RESOURCES_DIR) && $(LD) -r -b binary -m $(LDEMULATION) -z noexecstack $(patsubst %.o,%.png,$@) -o ../$@
-	$(AR) rcs $(patsubst %.o,%.a,$@) $@
-	LDFLAGS += -DUSE_LD=1
-else
-$(RESOURCES_OBJ): $(RESOURCES)
-	cd $(RESOURCES_DIR) && $(LD) -r -b binary -z noexecstack --strip-all $(patsubst %.o,%.png,$@) -o ../$@
-	$(AR) rcs $(patsubst %.o,%.a,$@) $@
-	LDFLAGS += -DUSE_LD=1
+	@$(R_ECHO) "ARM CPU DETECTED, please check the optimisation flags$(reset)"
 endif
 
 clean :
-	rm -f *.a *.o *.so xresources.h
-	@rm -f $(NAME).so
-	@rm -rf ./$(BUNDLE)
-	@echo ". ." $(BLUE)", clean up"$(NONE)
+	$(QUIET)rm -f *.a *.o *.$(LIB_EXT) 
+	$(QUIET)rm -f $(NAME).$(LIB_EXT)
+	$(QUIET)rm -rf ./$(BUNDLE)
+ifndef EXTRAQUIET
+	@$(ECHO) ". ., clean up$(reset)"
+endif
 
 dist-clean :
-	@rm -f $(NAME).so
-	@rm -rf ./$(BUNDLE)
-	@echo ". ." $(BLUE)", clean up"$(NONE)
+	$(QUIET)rm -f $(NAME).$(LIB_EXT)
+	$(QUIET)rm -rf ./$(BUNDLE)
+ifndef EXTRAQUIET
+	@$(ECHO) ". ., clean up$(reset)"
+endif
 
 install :
+ifeq ($(TARGET), Linux)
 ifneq ("$(wildcard ./$(BUNDLE))","")
-	@mkdir -p $(DESTDIR)$(INSTALL_DIR)/$(BUNDLE)
-	cp -r ./$(BUNDLE)/* $(DESTDIR)$(INSTALL_DIR)/$(BUNDLE)
-	@echo ". ." $(BLUE)", done"$(NONE)
+	@$(ECHO) "Install Xmonc.lv2$(reset)"
+	$(QUIET)mkdir -p $(DESTDIR)$(INSTALL_DIR)/$(BUNDLE)
+	$(QUIET)cp -r ./$(BUNDLE)/* $(DESTDIR)$(INSTALL_DIR)/$(BUNDLE)
+	$(QUIET)$(B_ECHO) ". . , done$(reset)"
 else
-	@echo ". ." $(BLUE)", you must build first"$(NONE)
+	$(QUIET)$(R_ECHO) ". . , you must build first$(reset)"
+endif
+else
+	$(QUIET)$(R_ECHO) "Install is not implemented for windows, please copy the folder $(NAME).lv2 to Program Files/Common Files/LV2$(reset)"
 endif
 
 uninstall :
-	@rm -rf $(INSTALL_DIR)/Xmonc.lv2
-	@rm -rf $(INSTALL_DIR)/$(BUNDLE)
-	@echo ". ." $(BLUE)", done"$(NONE)
+ifeq ($(TARGET), Linux)
+	@$(ECHO) "Uninstall Xmonc.lv2$(reset)"
+	$(QUIET)rm -rf $(INSTALL_DIR)/Xmonc.lv2
+	$(QUIET)rm -rf $(INSTALL_DIR)/$(BUNDLE)
+	$(QUIET)$(B_ECHO) ". . , done$(reset)"
+else
+	$(QUIET)$(R_ECHO) "Uninstall is not implemented for windows, please remove the folder $(NAME).lv2 from Program Files/Common Files/LV2$(reset)"
+endif
 
 $(NAME) :
-	$(CXX) $(CXXFLAGS) $(OBJECTS) $(LDFLAGS) -o $(NAME).so
-	$(CC) $(CXXFLAGS) -Wl,-z,nodelete $(GUI_OBJECTS)  -L. $(RESOURCES_LIB) $(GUI_LDFLAGS) -o $(NAME)_ui.so
-	$(STRIP) -s -x -X -R .comment -R .note.ABI-tag $(NAME).so
-	$(STRIP) -s -x -X -R .comment -R .note.ABI-tag $(NAME)_ui.so
+	@$(B_ECHO) "Compiling $@.lv2 $(reset)"
+	$(QUIET)$(CXX) $(CXXFLAGS) $(OBJECTS) $(LDFLAGS) -o $(NAME).$(LIB_EXT)
+	$(QUIET)$(CC) $(CFLAGS) $(GUI_OBJECTS) $(GUI_LDFLAGS) -o $(NAME)_ui.$(LIB_EXT)
+	$(QUIET)$(STRIP) -s -x -X -R .comment -R .note.ABI-tag $(NAME).$(LIB_EXT)
+	$(QUIET)$(STRIP) -s -x -X -R .comment -R .note.ABI-tag $(NAME)_ui.$(LIB_EXT)
 
 nogui :
-	$(CXX) $(CXXFLAGS) $(OBJECTS) $(LDFLAGS) -o $(NAME).so
-	$(STRIP) -s -x -X -R .comment -R .note.ABI-tag $(NAME).so
+	@$(B_ECHO) "Compiling $(NAME) $(reset)"
+	$(QUIET)$(CXX) $(CXXFLAGS) $(OBJECTS) $(LDFLAGS) -o $(NAME).$(LIB_EXT)
+	$(QUIET)$(STRIP) -s -x -X -R .comment -R .note.ABI-tag $(NAME).$(LIB_EXT)
 
 doc:
 	#pass

@@ -3,8 +3,8 @@
 #include "lv2/lv2plug.in/ns/extensions/ui/ui.h"
 
 // xwidgets.h includes xputty.h and all defined widgets from Xputty
-#include "xwidgets.h"
 #include "xmidi_keyboard.h"
+#include "xwidgets.h"
 #include "xresources.h"
 
 
@@ -36,7 +36,7 @@ typedef struct {
     Widget_t *key_button;
     Widget_t *sustain_slider;
     Widget_t *keyboard;
-    MidiKeyboard *keys;
+    MidiKeyboard_mk *keys;
     int block_event;
     int last_key[12];
     float sustain;
@@ -77,10 +77,11 @@ static void adj_changed(Widget_t *w, PortIndex index, float value) {
 static void draw_window(void *w_, void* user_data) {
     Widget_t *w = (Widget_t*)w_;
     if (!w) return;
-    XWindowAttributes attrs;
-    XGetWindowAttributes(w->app->dpy, (Window)w->widget, &attrs);
-    int width = attrs.width;
-    int height = attrs.height;
+    Metrics_t metrics;
+    os_get_window_metrics(w, &metrics);
+    int width = metrics.width-2;
+    int height = metrics.height-2;
+    if (!metrics.visible) return;
     double state_x = adj_get_state(w->adj_x);
     double state_y = adj_get_state(w->adj_y);
     
@@ -114,11 +115,13 @@ static void draw_window(void *w_, void* user_data) {
     cairo_paint(w->crb);
     widget_reset_scale(w);
 
-    use_fg_color_scheme(w, get_color_state(w));
-    cairo_move_to(w->crb, pos_x1, pos_y1);
-    cairo_line_to(w->crb, pos_x1, pos_y1);
-    cairo_set_line_width(w->crb, 8.0);
-    cairo_set_line_cap (w->crb,CAIRO_LINE_CAP_ROUND);
+    //use_fg_color_scheme(w, get_color_state(w));
+    cairo_set_source_rgba(w->crb, 1.0, 1.0, 0.0, 1.0);
+    cairo_arc (w->crb, pos_x1, pos_y1, 6, 0, 2 * M_PI);
+    cairo_fill_preserve (w->crb);
+    use_bg_color_scheme(w, get_color_state(w));
+    cairo_stroke(w->crb);
+    cairo_set_line_width(w->crb, 2.0);
     cairo_stroke(w->crb);
     
 }
@@ -219,7 +222,7 @@ static void get_note(Widget_t *w, int *key, bool on_off) {
         adj_changed(w, GATE, 1.0);    
     } else {
         if(!(int)floor(ui->sustain))remove_last_key(ui,key);
-        if(!have_key_in_matrix(ui->keys->key_matrix)) {
+        if(!mk_have_key_in_matrix(ui->keys->key_matrix)) {
             adj_changed(w, GATE, 0.0);
         } else {
             get_last_key(ui);
@@ -256,7 +259,12 @@ static void win_key_release(void *w_, void *key_, void *user_data) {
     Widget_t *w = (Widget_t*)w_;
     if (!w) return;
     XKeyEvent *key = (XKeyEvent*)key_;
+#ifdef _WIN32 //KeybHandler
+    KeySym sym = key->keycode;
+    if (key->vk_is_final_char) return; // only real KEY_DOWN, dead-key support not required/wanted
+#else
     KeySym sym = XLookupKeysym (key, 0);
+#endif
     if (sym == XK_space) {
         get_all_sound_off(w, NULL);
     }
@@ -398,10 +406,10 @@ static LV2UI_Handle instantiate(const LV2UI_Descriptor * descriptor,
     // connect the value changed callback with the write_function
     ui->button->func.value_changed_callback = value_changed;
 
-    ui->keyboard = open_midi_keyboard(ui->win);
+    ui->keyboard = mk_open_midi_keyboard(ui->win);
     ui->keyboard->flags |= HIDE_ON_DELETE;
     ui->keyboard->func.unmap_notify_callback = keyboard_hidden;
-    ui->keys = (MidiKeyboard*)ui->keyboard->parent_struct;
+    ui->keys = (MidiKeyboard_mk*)ui->keyboard->parent_struct;
     ui->keys->mk_send_note = get_note;
     ui->keys->mk_send_pitch = get_pitch;
     ui->keys->mk_send_pitchsensity = get_sensity;
