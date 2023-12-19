@@ -22,7 +22,7 @@
 #ifndef SRC_HEADERS_GXEFFECTS_H_
 #define SRC_HEADERS_GXEFFECTS_H_
 
-#include <lv2.h>
+#include <lv2/core/lv2.h>
 #include <lv2/lv2plug.in/ns/ext/atom/atom.h>
 #include <lv2/lv2plug.in/ns/ext/atom/util.h>
 #include <lv2/lv2plug.in/ns/ext/midi/midi.h>
