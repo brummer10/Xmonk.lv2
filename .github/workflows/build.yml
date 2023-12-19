@@ -23,7 +23,7 @@ jobs:
   windows:
     strategy:
       matrix:
-        target: [win32, win64]
+        target: [win64]
     runs-on: ubuntu-20.04
     permissions:
         contents: write
