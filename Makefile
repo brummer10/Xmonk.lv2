@@ -5,7 +5,9 @@ BLUE = "\033[1;34m"
 RED =  "\033[1;31m"
 NONE = "\033[0m"
 
-NOGOAL := mod install all
+NOGOAL := mod install all features
+
+PASS := features 
 
 SUBDIR := Xmonk
 
@@ -34,7 +36,11 @@ endif
 endif
 
 $(SUBDIR): libxputty
+ifeq (,$(filter $(PASS),$(MAKECMDGOALS)))
 	@exec $(MAKE) --no-print-directory -j 1 -C $@ $(MAKECMDGOALS)
+endif
 
 clean:
 	@rm -f ./libxputty/xputty/resources/mandala.png
+
+features:
