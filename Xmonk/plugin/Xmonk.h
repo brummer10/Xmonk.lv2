@@ -23,10 +23,10 @@
 #define SRC_HEADERS_GXEFFECTS_H_
 
 #include <lv2/core/lv2.h>
-#include <lv2/lv2plug.in/ns/ext/atom/atom.h>
-#include <lv2/lv2plug.in/ns/ext/atom/util.h>
-#include <lv2/lv2plug.in/ns/ext/midi/midi.h>
-#include <lv2/lv2plug.in/ns/ext/urid/urid.h>
+#include <lv2/atom/atom.h>
+#include <lv2/atom/util.h>
+#include <lv2/midi/midi.h>
+#include <lv2/urid/urid.h>
 
 #define PLUGIN_URI "https://github.com/brummer10/Xmonk.lv2"
 #define PLUGIN_UI_URI "https://github.com/brummer10/Xmonk_gui"
