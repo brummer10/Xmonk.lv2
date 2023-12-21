@@ -56,7 +56,6 @@ runs:
         echo "LIBGL_ALWAYS_SOFTWARE=true" >> $GITHUB_ENV
         echo "PAWPAW_CACHE_VERSION=${PAWPAW_CACHE_VERSION:=6}" >> $GITHUB_ENV
         echo "PAWPAW_COMMIT_HASH=${PAWPAW_COMMIT_HASH:=76f3aef7313e4928967e80f37fbd8912ac8fbc77}" >> $GITHUB_ENV
-        echo "PAWPAW_SKIP_LTO=${PAWPAW_SKIP_LTO:=1}" >> $GITHUB_ENV
     - name: Fix GitHub's mess (detect version)
       if: ${{ runner.os == 'Linux' }}
       shell: bash
@@ -79,7 +78,7 @@ runs:
         sudo rm /etc/apt/sources.list.d/*.list
         sudo apt-get update -qq
         sudo apt-get purge -yqq git-man libclang* libgbm* libllvm* libmono* libnginx* moby* mono* msbuild* nginx* perl php* libgdiplus libpcre2-posix3 libselinux1-dev libzip4
-        sudo apt-get install -y --allow-downgrades git/jammy
+        sudo apt-get install -yqq --allow-downgrades git/jammy autoconf/jammy automake/jammy build-essential/jammy git/jammy libgd3/jammy libglib2.0-0/jammy libglib2.0-dev/jammy libpcre2-8-0/jammy libpcre2-16-0/jammy libpcre2-32-0/jammy libpcre2-posix2/jammy pkg-config/jammy
         sudo apt-get clean
 
     # setup build options
