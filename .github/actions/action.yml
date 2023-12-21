@@ -55,9 +55,8 @@ runs:
         echo "HOMEBREW_NO_INSTALL_CLEANUP=1" >> $GITHUB_ENV
         echo "LIBGL_ALWAYS_SOFTWARE=true" >> $GITHUB_ENV
         echo "PAWPAW_CACHE_VERSION=${PAWPAW_CACHE_VERSION:=6}" >> $GITHUB_ENV
-        echo "PAWPAW_COMMIT_HASH=${PAWPAW_COMMIT_HASH:=3452bad1b48dcd91590cb7759b39b83a65337b00}" >> $GITHUB_ENV
-        echo "PAWPAW_SKIP_GLIB=${PAWPAW_SKIP_GLIB:=1}" >> $GITHUB_ENV
-        echo "PAWPAW_SKIP_LTO=${PAWPAW_SKIP_LTO}" >> $GITHUB_ENV
+        echo "PAWPAW_COMMIT_HASH=${PAWPAW_COMMIT_HASH:=76f3aef7313e4928967e80f37fbd8912ac8fbc77}" >> $GITHUB_ENV
+        echo "PAWPAW_SKIP_LTO=${PAWPAW_SKIP_LTO:=1}" >> $GITHUB_ENV
     - name: Fix GitHub's mess (detect version)
       if: ${{ runner.os == 'Linux' }}
       shell: bash
@@ -71,7 +70,7 @@ runs:
         sudo rm /etc/apt/sources.list.d/*.list
         sudo apt-get update -qq
         sudo apt-get purge -yqq git-man libclang* libgbm* libllvm* libmono* libnginx* moby* mono* nginx* perl php* libgdiplus libpcre2-posix3 libselinux1-dev libzip4
-        sudo apt-get install -yqq --allow-downgrades autoconf/focal automake/focal build-essential/focal git/focal libgd3/focal libglib2.0-0/focal libglib2.0-dev/focal libpcre2-8-0/focal libpcre2-16-0/focal libpcre2-32-0/focal libpcre2-posix2/focal pkg-config/focal
+        sudo apt-get install -yqq --allow-downgrades autoconf/focal automake/focal build-essential/focal git/focal libgd3/focal libglib2.0-0/focal libglib2.0-dev/focal libpcre2-8-0/focal libpcre2-16-0/focal libpcre2-32-0/focal libpcre2-posix2/focal pkg-config/focal ninja-build meson
         sudo apt-get clean
     - name: Fix GitHub's mess (ubuntu-22.04)
       if: ${{ runner.os == 'Linux' && env.UBUNTU_VERSION == '22.04' }}
@@ -186,7 +185,7 @@ runs:
       run: |
         sudo dpkg --add-architecture i386
         sudo apt-get update -qq
-        sudo apt-get install -yqq --allow-downgrades binutils-mingw-w64-x86-64 g++-mingw-w64-x86-64 libc6:i386 libgcc-s1:i386 libstdc++6:i386 mingw-w64 gperf wine-stable xvfb
+        sudo apt-get install -yqq --allow-downgrades binutils-mingw-w64-x86-64 g++-mingw-w64-x86-64 libc6:i386 libgcc-s1:i386 libstdc++6:i386 mingw-w64 gperf wine-stable xvfb ninja-build meson
         sudo apt-get clean
     - name: Setup dependencies (pluginval)
       if: ${{ inputs.target == 'pluginval' || inputs.target == 'plugin-validation' }}
