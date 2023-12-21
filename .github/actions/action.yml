@@ -185,7 +185,7 @@ runs:
       run: |
         sudo dpkg --add-architecture i386
         sudo apt-get update -qq
-        sudo apt-get install -yqq --allow-downgrades binutils-mingw-w64-x86-64 g++-mingw-w64-x86-64 libc6:i386 libgcc-s1:i386 libstdc++6:i386 mingw-w64 gperf wine-stable xvfb
+        sudo apt-get install -yqq --allow-downgrades binutils-mingw-w64-x86-64 g++-mingw-w64-x86-64 libc6 libgcc-s1 libstdc++6 mingw-w64 gperf wine-stable xvfb
         sudo apt-get clean
     - name: Setup dependencies (pluginval)
       if: ${{ inputs.target == 'pluginval' || inputs.target == 'plugin-validation' }}
