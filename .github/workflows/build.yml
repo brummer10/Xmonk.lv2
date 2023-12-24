@@ -2,6 +2,8 @@ name: build
 
 on:
   push:
+env:
+  PAWPAW_SKIP_LV2: 0
 
 jobs:
   linux:
@@ -15,7 +17,7 @@ jobs:
       - uses: actions/checkout@v3
         with:
           submodules: recursive
-      - uses: ./.github/actions
+      - uses: distrho/dpf-makefile-action@v1
         with:
           target: ${{ matrix.target }}
           pawpaw: true
@@ -31,7 +33,7 @@ jobs:
       - uses: actions/checkout@v3
         with:
           submodules: recursive
-      - uses: ./.github/actions
+      - uses: distrho/dpf-makefile-action@v1
         with:
           target: ${{ matrix.target }}
           pawpaw: true
