@@ -49,6 +49,8 @@ ifeq ($(TARGET), Linux)
 
 	LDFLAGS += -I. -shared -lm -Wl,-z,noexecstack -fvisibility=hidden
 
+	CFLAGS += -fPIC
+
 	GUI_LDFLAGS += -I./gui -I./plugin -I$(HEADER_DIR) -Wl,-z,noexecstack -fvisibility=hidden \
 	-L. $(LIB_DIR)libxputty.a -shared `pkg-config --cflags --libs cairo x11` -lm -Wl,-z,nodelete 
 else ifeq ($(TARGET), Windows)
