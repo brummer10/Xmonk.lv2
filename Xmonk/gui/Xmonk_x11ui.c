@@ -365,7 +365,7 @@ static LV2UI_Handle instantiate(const LV2UI_Descriptor * descriptor,
 
     // create a slider widget
     ui->widget = add_vslider(ui->win, "Gain", 5, 10, 44, 240);
-    ui->widget->flags |= FAST_REDRAW;
+    ui->widget->flags |= FAST_REDRAW | MOUSE_CAPTURE;
     ui->widget->scale.gravity = CENTER;
     // store the port index in the Widget_t data field
     ui->widget->data = GAIN;
@@ -423,7 +423,7 @@ static LV2UI_Handle instantiate(const LV2UI_Descriptor * descriptor,
     // request to resize the parentXwindow to the size of the toplevel Widget_t
     if (resize){
         ui->resize = resize;
-        resize->ui_resize(resize->handle, 300, 300);
+        resize->ui_resize(resize->handle, ui->win->width, ui->win->height);
     }
     // store pointer to the host controller
     ui->controller = controller;
